@@ -1,6 +1,2 @@
 @Stylo.Backend_HostAddress = http://localhost:5180
 
-GET {{Stylo.Backend_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
