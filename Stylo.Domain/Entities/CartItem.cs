@@ -1,0 +1,18 @@
+﻿using Stylo.Backend.Stylo.Domain.Enums;
+namespace Stylo.Backend.Stylo.Domain.Entities
+{
+    public class CartItem
+    {
+        public int Id { get; set; }
+
+        public int CartId { get; set; }
+        public Cart Cart { get; set; } = null!;
+
+        public int ProductId { get; set; }
+        public Product Product { get; set; } = null!;
+
+        public Size Size { get; set; }
+
+        public int Quantity { get; set; }
+    }
+}
