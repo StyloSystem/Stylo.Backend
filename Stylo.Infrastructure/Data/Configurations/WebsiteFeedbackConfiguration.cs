@@ -11,6 +11,11 @@ namespace Stylo.Backend.Stylo.Infrastructure.Data.Configurations
             builder.Property(wf => wf.Message)
                    .IsRequired()
                    .HasMaxLength(1000);
+
+            builder.HasOne(wf => wf.User)
+                   .WithMany(u => u.WebsiteFeedbacks)
+                   .HasForeignKey(wf => wf.UserId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Stylo.Backend.Stylo.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using Stylo.Backend.Stylo.Infrastructure.Data;
 namespace Stylo.Backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260915192525_Test")]
+    partial class Test
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -132,13 +135,11 @@ namespace Stylo.Backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("OrderStatus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("OrderStatus")
+                        .HasColumnType("int");
 
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("PaymentMethod")
+                        .HasColumnType("int");
 
                     b.Property<string>("RecipientName")
                         .IsRequired()
@@ -180,9 +181,8 @@ namespace Stylo.Backend.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<string>("Size")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Size")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(18,2)");
@@ -274,9 +274,8 @@ namespace Stylo.Backend.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Size")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Size")
+                        .HasColumnType("int");
 
                     b.Property<int>("Stock")
                         .HasColumnType("int");
@@ -311,9 +310,8 @@ namespace Stylo.Backend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -371,7 +369,7 @@ namespace Stylo.Backend.Migrations
                     b.HasOne("Stylo.Backend.Stylo.Domain.Entities.Product", "Product")
                         .WithMany("CartItems")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Cart");
@@ -420,7 +418,7 @@ namespace Stylo.Backend.Migrations
                     b.HasOne("Stylo.Backend.Stylo.Domain.Entities.Product", "Product")
                         .WithMany("OrderItems")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Order");
