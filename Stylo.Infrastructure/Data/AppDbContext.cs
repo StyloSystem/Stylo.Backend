@@ -1,14 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Stylo.Backend.Stylo.Domain.Entities;
 
 namespace Stylo.Backend.Stylo.Infrastructure.Data
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
-
 
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<Product> Products => Set<Product>();
@@ -17,8 +18,7 @@ namespace Stylo.Backend.Stylo.Infrastructure.Data
         public DbSet<CartItem> CartItems => Set<CartItem>();
         public DbSet<Order> Orders => Set<Order>();
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
-        public DbSet<User> Users => Set<User>();
-        public DbSet<Favourite> Favourites => Set<Favourite>();
+        public DbSet<Favorite> Favorites => Set<Favorite>();
         public DbSet<ProductFeedback> ProductFeedbacks => Set<ProductFeedback>();
         public DbSet<WebsiteFeedback> WebsiteFeedbacks => Set<WebsiteFeedback>();
 
@@ -26,7 +26,6 @@ namespace Stylo.Backend.Stylo.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         }
     }

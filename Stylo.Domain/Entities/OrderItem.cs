@@ -1,4 +1,3 @@
-﻿using Stylo.Backend.Stylo.Domain.Enums;
 namespace Stylo.Backend.Stylo.Domain.Entities
 {
     public class OrderItem
@@ -11,8 +10,8 @@ namespace Stylo.Backend.Stylo.Domain.Entities
         public int ProductId { get; set; }
         public Product Product { get; set; } = null!;
 
-        public Size Size { get; set; }  
+        public string Size { get; set; } = string.Empty;
         public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; }
+        public decimal UnitPriceAtPurchase { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Stylo.Backend.Stylo.Domain.Entities;
 
@@ -8,34 +8,37 @@ namespace Stylo.Backend.Stylo.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Order> builder)
         {
-            builder.Property(o => o.TotalPrice)
-                   .HasColumnType("decimal(18,2)")
-                   .IsRequired();
+            builder.HasKey(o => o.Id);
 
             builder.Property(o => o.RecipientName)
-                   .IsRequired()
-                   .HasMaxLength(150);
+                .IsRequired()
+                .HasMaxLength(100);
 
             builder.Property(o => o.ContactPhone)
-                   .IsRequired()
-                   .HasMaxLength(30);
+                .IsRequired()
+                .HasMaxLength(30);
 
             builder.Property(o => o.ShippingAddress)
-                   .IsRequired()
-                   .HasMaxLength(500);
-
-            builder.Property(o => o.OrderStatus)
-                   .HasConversion<string>()
-                   .IsRequired();
+                .IsRequired()
+                .HasMaxLength(500);
 
             builder.Property(o => o.PaymentMethod)
-                   .HasConversion<string>()
-                   .IsRequired();
+                .HasConversion<string>()
+                .HasMaxLength(50);
 
-            builder.HasMany(o => o.OrderItems)
-                   .WithOne(oi => oi.Order)
-                   .HasForeignKey(oi => oi.OrderId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            builder.Property(o => o.Status)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
+            builder.Property(o => o.TotalPrice)
+                .HasColumnType("decimal(18,2)");
+
+            builder.HasOne(o => o.User)
+                .WithMany(u => u.Orders)
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasIndex(o => o.UserId);
         }
     }
 }

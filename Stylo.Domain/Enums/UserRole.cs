@@ -1,9 +1,9 @@
-﻿namespace Stylo.Backend.Stylo.Domain.Enums
+namespace Stylo.Backend.Stylo.Domain.Enums
 {
     public enum UserRole
     {
-        Buyer,
+        Customer,
         Admin
-       
     }
 }
+

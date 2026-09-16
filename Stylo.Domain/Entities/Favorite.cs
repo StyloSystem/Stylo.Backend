@@ -1,6 +1,6 @@
-﻿namespace Stylo.Backend.Stylo.Domain.Entities
+namespace Stylo.Backend.Stylo.Domain.Entities
 {
-    public class Favourite
+    public class Favorite
     {
         public int Id { get; set; }
 

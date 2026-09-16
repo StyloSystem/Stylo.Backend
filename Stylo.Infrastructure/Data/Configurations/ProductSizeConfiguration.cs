@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Stylo.Backend.Stylo.Domain.Entities;
 
@@ -8,16 +8,20 @@ namespace Stylo.Backend.Stylo.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<ProductSize> builder)
         {
-            builder.HasIndex(ps => new { ps.ProductId, ps.Size }).IsUnique();
-
-            builder.HasOne(ps => ps.Product)
-                   .WithMany(p => p.ProductSizes)
-                   .HasForeignKey(ps => ps.ProductId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            builder.HasKey(ps => ps.Id);
 
             builder.Property(ps => ps.Size)
-                   .IsRequired()
-                   .HasConversion<string>();
+                .IsRequired()
+                .HasMaxLength(20);
+
+            builder.Ignore(ps => ps.IsAvailable);
+
+            builder.HasOne(ps => ps.Product)
+                .WithMany(p => p.ProductSizes)
+                .HasForeignKey(ps => ps.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasIndex(ps => ps.ProductId);
         }
     }
 }

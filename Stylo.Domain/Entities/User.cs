@@ -1,19 +1,15 @@
-﻿using Stylo.Backend.Stylo.Domain.Enums;
+using Microsoft.AspNetCore.Identity;
 
 namespace Stylo.Backend.Stylo.Domain.Entities
 {
-    public class User
+    public class User : IdentityUser<int>
     {
-        public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string PasswordHash { get; set; } = string.Empty;
-        public UserRole Role { get; set; }
+        public string Role { get; set; } = "Customer";
 
-        
         public Cart? Cart { get; set; }
         public ICollection<Order> Orders { get; set; } = new List<Order>();
-        public ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
+        public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
         public ICollection<ProductFeedback> ProductFeedbacks { get; set; } = new List<ProductFeedback>();
         public ICollection<WebsiteFeedback> WebsiteFeedbacks { get; set; } = new List<WebsiteFeedback>();
     }

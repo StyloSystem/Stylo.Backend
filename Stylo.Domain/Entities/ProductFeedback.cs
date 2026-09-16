@@ -1,4 +1,4 @@
-﻿namespace Stylo.Backend.Stylo.Domain.Entities
+namespace Stylo.Backend.Stylo.Domain.Entities
 {
     public class ProductFeedback
     {
@@ -10,7 +10,11 @@
         public int ProductId { get; set; }
         public Product Product { get; set; } = null!;
 
+        public int OrderId { get; set; }
+        public Order Order { get; set; } = null!;
+
         public string Message { get; set; } = string.Empty;
+        public bool IsFeatured { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
