@@ -25,7 +25,7 @@ namespace Stylo.Backend.Stylo.API.Controllers
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetProfile()
         {
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
             if (!int.TryParse(userIdClaim, out var userId))
             {
                 throw new UnauthorizedException("Invalid token user identifier.");
@@ -42,7 +42,7 @@ namespace Stylo.Backend.Stylo.API.Controllers
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequestDto request)
         {
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
             if (!int.TryParse(userIdClaim, out var userId))
             {
                 throw new UnauthorizedException("Invalid token user identifier.");
