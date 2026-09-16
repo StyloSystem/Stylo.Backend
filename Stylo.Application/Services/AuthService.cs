@@ -39,6 +39,11 @@ namespace Stylo.Backend.Stylo.Application.Services
                 throw new BadRequestException("Password must be at least 6 characters long.");
             }
 
+            if (dto.Password != dto.ConfirmPassword)
+            {
+                throw new BadRequestException("Password and confirm password do not match.");
+            }
+
             if (await _userRepository.EmailExistsAsync(dto.Email))
             {
                 throw new ConflictException("Email is already registered.");

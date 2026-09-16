@@ -12,6 +12,9 @@ namespace Stylo.Backend.Stylo.Application.DTOs
 
         [JsonPropertyName("password")]
         public string Password { get; set; } = string.Empty;
+
+        [JsonPropertyName("confirmPassword")]
+        public string ConfirmPassword { get; set; } = string.Empty;
     }
 
     public class LoginRequestDto
