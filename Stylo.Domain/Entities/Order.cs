@@ -15,7 +15,7 @@ namespace Stylo.Backend.Stylo.Domain.Entities
         public string RecipientName { get; set; } = string.Empty;
         public string ContactPhone { get; set; } = string.Empty;
         public string ShippingAddress { get; set; } = string.Empty;
-        public PaymentMethod PaymentMethod { get; set; } 
+        public PaymentMethod? PaymentMethod { get; set; } 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         

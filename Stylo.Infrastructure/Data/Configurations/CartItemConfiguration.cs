@@ -14,6 +14,11 @@ namespace Stylo.Backend.Stylo.Infrastructure.Data.Configurations
 
             builder.Property(ci => ci.Quantity)
                    .IsRequired();
+
+            builder.HasOne(ci => ci.Product)
+                   .WithMany(p => p.CartItems)
+                   .HasForeignKey(ci => ci.ProductId)
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

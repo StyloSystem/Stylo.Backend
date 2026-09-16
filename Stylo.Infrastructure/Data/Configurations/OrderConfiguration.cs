@@ -24,7 +24,14 @@ namespace Stylo.Backend.Stylo.Infrastructure.Data.Configurations
                    .IsRequired()
                    .HasMaxLength(500);
 
-           
+            builder.Property(o => o.OrderStatus)
+                   .HasConversion<string>()
+                   .IsRequired();
+
+            builder.Property(o => o.PaymentMethod)
+                   .HasConversion<string>()
+                   .IsRequired();
+
             builder.HasMany(o => o.OrderItems)
                    .WithOne(oi => oi.Order)
                    .HasForeignKey(oi => oi.OrderId)

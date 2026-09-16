@@ -14,6 +14,10 @@ namespace Stylo.Backend.Stylo.Infrastructure.Data.Configurations
                    .WithMany(p => p.ProductSizes)
                    .HasForeignKey(ps => ps.ProductId)
                    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Property(ps => ps.Size)
+                   .IsRequired()
+                   .HasConversion<string>();
         }
     }
 }

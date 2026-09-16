@@ -1,4 +1,6 @@
-﻿namespace Stylo.Backend.Stylo.Domain.Entities
+﻿using Stylo.Backend.Stylo.Domain.Enums;
+
+namespace Stylo.Backend.Stylo.Domain.Entities
 {
     public class User
     {
@@ -6,7 +8,7 @@
         public string Name { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
-        public string Role { get; set; } = string.Empty; 
+        public UserRole Role { get; set; }
 
         
         public Cart? Cart { get; set; }
