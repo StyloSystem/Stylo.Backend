@@ -8,7 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration
     .SetBasePath(Path.Combine(builder.Environment.ContentRootPath, "Stylo.API"))
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true);
+    .AddJsonFile(
+        $"appsettings.{builder.Environment.EnvironmentName}.json",
+        optional: true,
+        reloadOnChange: true)
+    .AddEnvironmentVariables();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
