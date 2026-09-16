@@ -82,7 +82,7 @@ namespace Stylo.Backend.Stylo.API.Extensions
                     Description = "E-Commerce Backend API for Stylo Clothing Store (Phase 0 Foundation)"
                 });
 
-                var bearerScheme = new OpenApiSecurityScheme
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
                     Type = SecuritySchemeType.Http,
@@ -90,14 +90,22 @@ namespace Stylo.Backend.Stylo.API.Extensions
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
                     Description = "Input your JWT token in this format: Bearer {your token}"
-                };
-
-                options.AddSecurityDefinition("Bearer", bearerScheme);
-
-                options.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
-                {
-                    { new OpenApiSecuritySchemeReference("Bearer"), new List<string>() }
                 });
+
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
             });
 
             return services;
