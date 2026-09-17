@@ -37,6 +37,9 @@ namespace Stylo.Backend.Stylo.API.Extensions
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<ICategoryService, CategoryService>();
 
+            services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IProductService, ProductService>();
+
             var secretKey = configuration["Jwt:SecretKey"] ?? "SuperSecretKeyForStyloBackendECommerceApp2026!";
             var issuer = configuration["Jwt:Issuer"] ?? "StyloAPI";
             var audience = configuration["Jwt:Audience"] ?? "StyloClient";

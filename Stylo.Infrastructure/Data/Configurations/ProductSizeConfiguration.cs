@@ -12,7 +12,7 @@ namespace Stylo.Backend.Stylo.Infrastructure.Data.Configurations
 
             builder.Property(ps => ps.Size)
                 .IsRequired()
-                .HasMaxLength(20);
+                .HasConversion<string>();
 
             builder.Ignore(ps => ps.IsAvailable);
 
