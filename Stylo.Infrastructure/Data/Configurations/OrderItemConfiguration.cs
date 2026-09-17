@@ -17,6 +17,10 @@ namespace Stylo.Backend.Stylo.Infrastructure.Data.Configurations
             builder.Property(oi => oi.UnitPriceAtPurchase)
                 .HasColumnType("decimal(18,2)");
 
+            builder.Property(oi => oi.Status)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
             builder.HasOne(oi => oi.Order)
                 .WithMany(o => o.OrderItems)
                 .HasForeignKey(oi => oi.OrderId)

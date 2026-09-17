@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stylo.Backend.Stylo.Application.DTOs;
 using Stylo.Backend.Stylo.Application.Interfaces;
@@ -52,7 +52,7 @@ namespace Stylo.Backend.Stylo.API.Controllers
         }
 
         [HttpPost]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(
             typeof(ProductDto),
             StatusCodes.Status201Created)]
@@ -80,7 +80,7 @@ namespace Stylo.Backend.Stylo.API.Controllers
         }
 
         [HttpPut("{id:int}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(
             typeof(ProductDto),
             StatusCodes.Status200OK)]
@@ -106,7 +106,7 @@ namespace Stylo.Backend.Stylo.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(
             typeof(ErrorResponseDto),
