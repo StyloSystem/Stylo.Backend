@@ -53,5 +53,13 @@ namespace Stylo.Backend.Stylo.API.Controllers
             var result = await _authService.GetMeAsync(userId);
             return Ok(result);
         }
+
+        [Authorize]
+        [HttpPost("logout")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult Logout()
+        {
+            return Ok(new { message = "Logged out successfully." });
+        }
     }
 }

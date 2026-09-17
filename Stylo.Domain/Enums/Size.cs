@@ -2,10 +2,10 @@
 {
     public enum Size
     {
-        Small,
-        Medium,
-        Large,
-        XLarge,
-        XXLarge
+        S,
+        M,
+        L,
+        XL,
+        XXL
     }
 }

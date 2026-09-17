@@ -34,6 +34,24 @@ namespace Stylo.Backend.Stylo.API.Extensions
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IProfileService, ProfileService>();
 
+            services.AddScoped<IFavoriteRepository, FavoriteRepository>();
+            services.AddScoped<IFavoriteService, FavoriteService>();
+
+            services.AddScoped<IWebsiteFeedbackRepository, WebsiteFeedbackRepository>();
+            services.AddScoped<IWebsiteFeedbackService, WebsiteFeedbackService>();
+
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<ICategoryService, CategoryService>();
+
+            services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IProductService, ProductService>();
+
+            services.AddScoped<ICartRepository, CartRepository>();
+            services.AddScoped<ICartService, CartService>();
+
+            services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IOrderService, OrderService>();
+
             var secretKey = configuration["Jwt:SecretKey"] ?? "SuperSecretKeyForStyloBackendECommerceApp2026!";
             var issuer = configuration["Jwt:Issuer"] ?? "StyloAPI";
             var audience = configuration["Jwt:Audience"] ?? "StyloClient";
@@ -66,6 +84,11 @@ namespace Stylo.Backend.Stylo.API.Extensions
                     {
                         Console.WriteLine($"[JWT Auth Failed]: {context.Exception.Message}");
                         return Task.CompletedTask;
+                    },
+                    OnChallenge = context =>
+                    {
+                        Console.WriteLine($"[JWT Auth Challenge]: Error={context.Error}, Description={context.ErrorDescription}");
+                        return Task.CompletedTask;
                     }
                 };
             });
@@ -79,7 +102,7 @@ namespace Stylo.Backend.Stylo.API.Extensions
                 {
                     Title = "Stylo Backend API",
                     Version = "v1",
-                    Description = "E-Commerce Backend API for Stylo Clothing Store (Phase 0 Foundation)"
+                    Description = "E-Commerce Backend API for Stylo Clothing Store"
                 });
 
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

@@ -1,3 +1,5 @@
+using Stylo.Backend.Stylo.Domain.Enums;
+
 namespace Stylo.Backend.Stylo.Domain.Entities
 {
     public class ProductSize
@@ -7,7 +9,7 @@ namespace Stylo.Backend.Stylo.Domain.Entities
         public int ProductId { get; set; }
         public Product Product { get; set; } = null!;
 
-        public string Size { get; set; } = string.Empty;
+        public Size  Size { get; set; } 
         public int Stock { get; set; }
 
         public bool IsAvailable => Stock > 0;
