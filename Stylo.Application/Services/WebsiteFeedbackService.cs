@@ -15,9 +15,6 @@ namespace Stylo.Backend.Stylo.Application.Services
         }
         public async Task AddFeedbackAsync(int userId, CreateWebsiteFeedbackDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.Message))
-                throw new BadRequestException("Message is required");
-
             var trimmedMessage = dto.Message.Trim();
 
             if (trimmedMessage.Length < 5)
