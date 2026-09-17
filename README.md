@@ -6,7 +6,7 @@ Backend service for Stylo built with **ASP.NET Core (.NET 10)** and structured a
 
 ## 🏗 Project Structure
 
-The solution is organized into four core layers:
+The solution is organized into four core layers ....
 
 ```text
 Stylo.Backend/
