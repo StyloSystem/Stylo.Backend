@@ -43,6 +43,9 @@ namespace Stylo.Backend.Stylo.API.Extensions
             services.AddScoped<IWebsiteFeedbackRepository, WebsiteFeedbackRepository>();
             services.AddScoped<IWebsiteFeedbackService, WebsiteFeedbackService>();
 
+            services.AddScoped<IAdminDashboardRepository, AdminDashboardRepository>();
+            services.AddScoped<IAdminDashboardService, AdminDashboardService>();
+
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<ICategoryService, CategoryService>();
 
