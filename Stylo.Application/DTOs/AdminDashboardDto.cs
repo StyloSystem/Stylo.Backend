@@ -1,4 +1,3 @@
-﻿@ -0,0 + 1,37 @@
 ﻿using System.Text.Json.Serialization;
 
 namespace Stylo.Backend.Stylo.Application.DTOs
