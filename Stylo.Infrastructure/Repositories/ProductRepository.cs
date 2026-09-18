@@ -1,4 +1,4 @@
-﻿using Stylo.Backend.Stylo.Application.Interfaces;
+using Stylo.Backend.Stylo.Application.Interfaces;
 using Stylo.Backend.Stylo.Domain.Entities;
 using Stylo.Backend.Stylo.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -115,6 +115,16 @@ namespace Stylo.Backend.Stylo.Infrastructure.Repositories
         {
             product.IsDeleted = true;
             _context.Products.Update(product);
+
+            var cartItems = await _context.CartItems
+                .Where(ci => ci.ProductId == product.Id)
+                .ToListAsync();
+
+            if (cartItems.Count > 0)
+            {
+                _context.CartItems.RemoveRange(cartItems);
+            }
+
             await _context.SaveChangesAsync();
         }
     }

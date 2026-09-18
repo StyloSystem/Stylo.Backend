@@ -24,6 +24,7 @@ namespace Stylo.Backend.Stylo.Infrastructure.Repositories
         public async Task<List<Order>> GetOrdersByUserIdAsync(int userId)
         {
             return await _context.Orders
+                .IgnoreQueryFilters()
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Product)
                 .Where(o => o.UserId == userId)
@@ -34,6 +35,7 @@ namespace Stylo.Backend.Stylo.Infrastructure.Repositories
         public async Task<Order?> GetOrderByIdAsync(int orderId)
         {
             return await _context.Orders
+                .IgnoreQueryFilters()
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Product)
                 .FirstOrDefaultAsync(o => o.Id == orderId);
@@ -42,6 +44,7 @@ namespace Stylo.Backend.Stylo.Infrastructure.Repositories
         public async Task<List<Order>> GetAllOrdersAsync()
         {
             return await _context.Orders
+                .IgnoreQueryFilters()
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Product)
                 .OrderByDescending(o => o.CreatedAt)
@@ -57,6 +60,7 @@ namespace Stylo.Backend.Stylo.Infrastructure.Repositories
         public async Task<OrderItem?> GetOrderItemByIdAsync(int orderItemId)
         {
             return await _context.OrderItems
+                .IgnoreQueryFilters()
                 .Include(oi => oi.Order)
                 .Include(oi => oi.Product)
                 .FirstOrDefaultAsync(oi => oi.Id == orderItemId);

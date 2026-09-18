@@ -35,6 +35,23 @@ namespace Stylo.Backend.Stylo.Infrastructure.Repositories
                         .ThenInclude(ci => ci.Product)
                     .FirstAsync(c => c.Id == cart.Id);
             }
+            else
+            {
+                var invalidItems = cart.CartItems
+                    .Where(ci => ci.Product == null || ci.Product.IsDeleted)
+                    .ToList();
+
+                if (invalidItems.Count > 0)
+                {
+                    _context.CartItems.RemoveRange(invalidItems);
+                    await _context.SaveChangesAsync();
+
+                    foreach (var item in invalidItems)
+                    {
+                        cart.CartItems.Remove(item);
+                    }
+                }
+            }
 
             return cart;
         }
