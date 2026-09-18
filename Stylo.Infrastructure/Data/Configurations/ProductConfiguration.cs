@@ -24,6 +24,12 @@ namespace Stylo.Backend.Stylo.Infrastructure.Data.Configurations
                 .HasConversion<string>()
                 .HasMaxLength(20);
 
+            builder.Property(p => p.IsDeleted).HasDefaultValue(false);
+
+            
+            builder.HasQueryFilter(p => !p.IsDeleted);
+
+
             builder.HasIndex(p => p.CategoryId);
         }
     }
