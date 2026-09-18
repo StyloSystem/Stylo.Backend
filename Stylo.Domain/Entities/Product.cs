@@ -12,6 +12,7 @@ namespace Stylo.Backend.Stylo.Domain.Entities
         public Gender Gender { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public bool IsDeleted { get; set; } = false;
         public int CategoryId { get; set; }
         public Category Category { get; set; } = null!;
 

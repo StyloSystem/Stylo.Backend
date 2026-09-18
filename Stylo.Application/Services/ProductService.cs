@@ -135,7 +135,7 @@ namespace Stylo.Backend.Stylo.Application.Services
 
             var product = await _productRepository.GetByIdAsync(id);
 
-            if (product == null)
+            if (product == null || product.IsDeleted)
             {
                 throw new NotFoundException(
                     "Product not found.",
@@ -201,26 +201,7 @@ namespace Stylo.Backend.Stylo.Application.Services
                     "PRODUCT_NOT_FOUND");
             }
 
-            if (await _productRepository.HasCartItemsAsync(id))
-            {
-                throw new ConflictException(
-                    "Cannot delete a product that exists in a cart.",
-                    "PRODUCT_IN_CART");
-            }
-
-            if (await _productRepository.HasOrderItemsAsync(id))
-            {
-                throw new ConflictException(
-                    "Cannot delete a product that has order history.",
-                    "PRODUCT_HAS_ORDERS");
-            }
-
-            if (await _productRepository.HasProductFeedbacksAsync(id))
-            {
-                throw new ConflictException(
-                    "Cannot delete a product that has feedback.",
-                    "PRODUCT_HAS_FEEDBACK");
-            }
+            
 
             await _productRepository.DeleteAsync(product);
         }

@@ -81,16 +81,20 @@ namespace Stylo.Backend.Stylo.Application.Services
 
         private static CartDto MapToDto(Cart cart)
         {
-            var items = cart.CartItems.Select(ci => new CartItemDto
+            var validCartItems = cart.CartItems
+                .Where(ci => ci.Product != null && !ci.Product.IsDeleted)
+                .ToList();
+
+            var items = validCartItems.Select(ci => new CartItemDto
             {
                 Id = ci.Id,
                 ProductId = ci.ProductId,
-                ProductName = ci.Product?.Name ?? string.Empty,
-                ProductImageUrl = ci.Product?.ImageUrl ?? string.Empty,
+                ProductName = ci.Product!.Name,
+                ProductImageUrl = ci.Product.ImageUrl ?? string.Empty,
                 Size = ci.Size,
                 Quantity = ci.Quantity,
-                UnitPrice = ci.Product?.Price ?? 0,
-                TotalPrice = (ci.Product?.Price ?? 0) * ci.Quantity
+                UnitPrice = ci.Product.Price,
+                TotalPrice = ci.Product.Price * ci.Quantity
             }).ToList();
 
             return new CartDto
