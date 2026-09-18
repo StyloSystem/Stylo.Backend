@@ -37,6 +37,9 @@ namespace Stylo.Backend.Stylo.API.Extensions
             services.AddScoped<IFavoriteRepository, FavoriteRepository>();
             services.AddScoped<IFavoriteService, FavoriteService>();
 
+            services.AddScoped<IProductFeedbackRepository, ProductFeedbackRepository>();
+            services.AddScoped<IProductFeedbackService, ProductFeedbackService>();
+
             services.AddScoped<IWebsiteFeedbackRepository, WebsiteFeedbackRepository>();
             services.AddScoped<IWebsiteFeedbackService, WebsiteFeedbackService>();
 
