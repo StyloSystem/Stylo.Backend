@@ -113,7 +113,8 @@ namespace Stylo.Backend.Stylo.Infrastructure.Repositories
 
         public async Task DeleteAsync(Product product)
         {
-            _context.Products.Remove(product);
+            product.IsDeleted = true;
+            _context.Products.Update(product);
             await _context.SaveChangesAsync();
         }
     }

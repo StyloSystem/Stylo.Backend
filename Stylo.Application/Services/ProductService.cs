@@ -135,7 +135,7 @@ namespace Stylo.Backend.Stylo.Application.Services
 
             var product = await _productRepository.GetByIdAsync(id);
 
-            if (product == null)
+            if (product == null || product.IsDeleted)
             {
                 throw new NotFoundException(
                     "Product not found.",
