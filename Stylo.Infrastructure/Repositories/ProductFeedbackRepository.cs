@@ -46,6 +46,15 @@ namespace Stylo.Backend.Stylo.Infrastructure.Repositories
                 .Where(f => f.IsFeatured)
                 .ToListAsync();
         }
+        public async Task<int?> GetUserOrderIdForProductAsync(int userId, int productId)
+        {
+            return await _context.OrderItems
+                .Where(oi => oi.ProductId == productId
+                          && oi.Order.UserId == userId
+                          && oi.Order.Status == OrderStatus.Confirmed)
+                .Select(oi => (int?)oi.OrderId)
+                .FirstOrDefaultAsync();
+        }
         public async Task<bool> HasUserPurchasedProductAsync(int userId, int productId)
         {
             return await _context.OrderItems

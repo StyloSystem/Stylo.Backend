@@ -77,6 +77,9 @@ namespace Stylo.Backend.Stylo.Application.Services
             if (trimmedMessage.Contains('<') || trimmedMessage.Contains('>'))
                 throw new BadRequestException("Message cannot contain HTML tags");
 
+            var orderId = await _repository.GetUserOrderIdForProductAsync(userId, productId);
+            if (orderId == null)
+                throw new BadRequestException("You can only review products you have purchased.");
 
             var hasPurchased = await _repository.HasUserPurchasedProductAsync(userId, productId);
             if (!hasPurchased)
@@ -90,6 +93,7 @@ namespace Stylo.Backend.Stylo.Application.Services
             {
                 UserId = userId,
                 ProductId = productId,
+                OrderId = orderId.Value,
                 Message = trimmedMessage,
                 IsFeatured = false,
                 CreatedAt = DateTime.UtcNow

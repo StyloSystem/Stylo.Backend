@@ -8,6 +8,7 @@ namespace Stylo.Backend.Stylo.Application.Interfaces
         Task<IEnumerable<ProductFeedback>> GetByProductIdAsync(int productId);
         Task<IEnumerable<ProductFeedback>> GetAllAsync();
         Task<IEnumerable<ProductFeedback>> GetFeaturedAsync();
+        Task<int?> GetUserOrderIdForProductAsync(int userId, int productId);
         Task<bool> HasUserPurchasedProductAsync(int userId, int productId);
         Task<bool> HasUserAlreadyReviewedAsync(int userId, int productId);
         Task<bool> ProductExistsAsync(int productId);
