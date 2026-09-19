@@ -9,6 +9,7 @@ namespace Stylo.Backend.Stylo.Domain.Entities
         public string? Description { get; set; }
         public decimal Price { get; set; }
         public string? ImageUrl { get; set; }
+        public string? ImagePublicId { get; set; }
         public Gender Gender { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

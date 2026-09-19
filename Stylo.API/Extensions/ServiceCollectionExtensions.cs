@@ -7,8 +7,10 @@ using Microsoft.OpenApi;
 using Stylo.Backend.Stylo.Application.Interfaces;
 using Stylo.Backend.Stylo.Application.Services;
 using Stylo.Backend.Stylo.Domain.Entities;
+using Stylo.Backend.Stylo.Infrastructure.Configurations;
 using Stylo.Backend.Stylo.Infrastructure.Data;
 using Stylo.Backend.Stylo.Infrastructure.Repositories;
+using Stylo.Backend.Stylo.Infrastructure.Services;
 
 namespace Stylo.Backend.Stylo.API.Extensions
 {
@@ -16,6 +18,9 @@ namespace Stylo.Backend.Stylo.API.Extensions
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
+            services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
+            services.AddScoped<IImageService, CloudinaryImageService>();
+
             services.AddIdentityCore<User>(options =>
             {
                 options.Password.RequireDigit = false;

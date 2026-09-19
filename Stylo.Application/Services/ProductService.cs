@@ -1,4 +1,4 @@
-﻿using Stylo.Backend.Stylo.Application.DTOs;
+using Stylo.Backend.Stylo.Application.DTOs;
 using Stylo.Backend.Stylo.Application.Exceptions;
 using Stylo.Backend.Stylo.Application.Interfaces;
 using Stylo.Backend.Stylo.Domain.Entities;
@@ -9,10 +9,14 @@ namespace Stylo.Backend.Stylo.Application.Services
     public class ProductService : IProductService
     {
         private readonly IProductRepository _productRepository;
+        private readonly IImageService _imageService;
 
-        public ProductService(IProductRepository productRepository)
+        public ProductService(
+            IProductRepository productRepository,
+            IImageService imageService)
         {
             _productRepository = productRepository;
+            _imageService = imageService;
         }
 
         public async Task<ProductListDto> GetAllAsync(
@@ -89,6 +93,15 @@ namespace Stylo.Backend.Stylo.Application.Services
                     "CATEGORY_NOT_FOUND");
             }
 
+            if (dto.Image == null || dto.Image.Length == 0)
+            {
+                throw new BadRequestException(
+                    "Image file is required.",
+                    "INVALID_IMAGE");
+            }
+
+            var imageResult = await _imageService.UploadImageAsync(dto.Image);
+
             var product = new Product
             {
                 Name = dto.Name.Trim(),
@@ -96,21 +109,35 @@ namespace Stylo.Backend.Stylo.Application.Services
                     ? null
                     : dto.Description.Trim(),
                 Price = dto.Price,
-                ImageUrl = string.IsNullOrWhiteSpace(dto.ImageUrl)
-                    ? null
-                    : dto.ImageUrl.Trim(),
+                ImageUrl = imageResult.SecureUrl,
+                ImagePublicId = imageResult.PublicId,
                 Gender = gender,
                 CategoryId = dto.CategoryId
             };
 
             AddProductSizes(product, dto.Sizes);
 
-            await _productRepository.AddAsync(product);
+            try
+            {
+                await _productRepository.AddAsync(product);
+            }
+            catch
+            {
+                if (!string.IsNullOrEmpty(imageResult.PublicId))
+                {
+                    await _imageService.DeleteImageAsync(imageResult.PublicId);
+                }
+                throw;
+            }
 
             var createdProduct = await _productRepository.GetByIdAsync(product.Id);
 
             if (createdProduct == null)
             {
+                if (!string.IsNullOrEmpty(imageResult.PublicId))
+                {
+                    await _imageService.DeleteImageAsync(imageResult.PublicId);
+                }
                 throw new NotFoundException(
                     "Product could not be retrieved after creation.",
                     "PRODUCT_NOT_FOUND");
@@ -166,17 +193,47 @@ namespace Stylo.Backend.Stylo.Application.Services
                 : dto.Description.Trim();
 
             product.Price = dto.Price;
-
-            product.ImageUrl = string.IsNullOrWhiteSpace(dto.ImageUrl)
-                ? null
-                : dto.ImageUrl.Trim();
-
             product.Gender = gender;
             product.CategoryId = dto.CategoryId;
 
+            string? newPublicIdToCleanupOnFailure = null;
+            string? oldPublicIdToDelete = null;
+
+            if (dto.Image != null && dto.Image.Length > 0)
+            {
+                var newImageResult = await _imageService.UploadImageAsync(dto.Image);
+                newPublicIdToCleanupOnFailure = newImageResult.PublicId;
+                oldPublicIdToDelete = product.ImagePublicId;
+
+                product.ImageUrl = newImageResult.SecureUrl;
+                product.ImagePublicId = newImageResult.PublicId;
+            }
+
             UpdateProductSizes(product, dto.Sizes);
 
-            await _productRepository.UpdateAsync(product);
+            try
+            {
+                await _productRepository.UpdateAsync(product);
+            }
+            catch
+            {
+                if (!string.IsNullOrEmpty(newPublicIdToCleanupOnFailure))
+                {
+                    await _imageService.DeleteImageAsync(newPublicIdToCleanupOnFailure);
+                }
+                throw;
+            }
+
+            if (!string.IsNullOrEmpty(oldPublicIdToDelete))
+            {
+                try
+                {
+                    await _imageService.DeleteImageAsync(oldPublicIdToDelete);
+                }
+                catch
+                {
+                }
+            }
 
             var updatedProduct = await _productRepository.GetByIdAsync(id);
 
