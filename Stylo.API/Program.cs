@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Stylo.Backend.Stylo.API.Extensions;
 using Stylo.Backend.Stylo.API.Middleware;
+using Stylo.Backend.Stylo.Domain.Entities;
 using Stylo.Backend.Stylo.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -40,8 +42,22 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    var services = scope.ServiceProvider;
+    var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        await context.Database.MigrateAsync();
+
+        var userManager = services.GetRequiredService<UserManager<User>>();
+        await DbSeeder.SeedAsync(context, userManager);
+    }
+    catch (Exception ex)
+    {
+        var logger = loggerFactory.CreateLogger<Program>();
+        logger.LogError(ex, "An error occurred during migration or seeding the database.");
+    }
 }
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
