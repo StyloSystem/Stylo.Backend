@@ -14,6 +14,9 @@ namespace Stylo.Backend.Stylo.Infrastructure.Data.Configurations
                 .IsRequired()
                 .HasConversion<string>();
 
+            builder.Property(ps => ps.RowVersion)
+                .IsRowVersion();
+
             builder.Ignore(ps => ps.IsAvailable);
 
             builder.HasOne(ps => ps.Product)

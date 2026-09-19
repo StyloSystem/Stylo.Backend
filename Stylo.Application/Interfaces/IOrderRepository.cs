@@ -1,9 +1,11 @@
+using Stylo.Backend.Stylo.Application.DTOs;
 using Stylo.Backend.Stylo.Domain.Entities;
 
 namespace Stylo.Backend.Stylo.Application.Interfaces
 {
     public interface IOrderRepository
     {
+        Task<Order> CreateOrderFromCartTransactionAsync(int userId, CreateOrderRequestDto dto);
         Task<Order> CreateOrderAsync(Order order);
         Task<List<Order>> GetOrdersByUserIdAsync(int userId);
         Task<Order?> GetOrderByIdAsync(int orderId);
