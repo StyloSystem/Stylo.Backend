@@ -12,6 +12,8 @@ namespace Stylo.Backend.Stylo.Domain.Entities
         public Size  Size { get; set; } 
         public int Stock { get; set; }
 
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+
         public bool IsAvailable => Stock > 0;
     }
 }

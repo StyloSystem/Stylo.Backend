@@ -24,6 +24,12 @@ namespace Stylo.Backend.Stylo.Application.Services
 
         public async Task<CartDto> AddItemToCartAsync(int userId, AddToCartRequestDto dto)
         {
+            if (string.IsNullOrWhiteSpace(dto.Size) ||
+                !Enum.TryParse<Stylo.Domain.Enums.Size>(dto.Size.Trim(), ignoreCase: true, out var parsedSize))
+            {
+                throw new BadRequestException($"Invalid product size '{dto.Size}'. Allowed sizes are: S, M, L, XL, XXL.", "INVALID_SIZE");
+            }
+
             var product = await _productRepository.GetByIdAsync(dto.ProductId);
             if (product == null)
             {
@@ -31,7 +37,7 @@ namespace Stylo.Backend.Stylo.Application.Services
             }
 
             var cart = await _cartRepository.GetOrCreateCartByUserIdAsync(userId);
-            await _cartRepository.AddCartItemAsync(cart.Id, dto.ProductId, dto.Size, dto.Quantity);
+            await _cartRepository.AddCartItemAsync(cart.Id, dto.ProductId, parsedSize.ToString(), dto.Quantity);
 
             var updatedCart = await _cartRepository.GetOrCreateCartByUserIdAsync(userId);
             return MapToDto(updatedCart);

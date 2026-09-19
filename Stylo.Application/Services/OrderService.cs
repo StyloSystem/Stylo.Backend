@@ -19,39 +19,7 @@ namespace Stylo.Backend.Stylo.Application.Services
 
         public async Task<OrderDto> CreateOrderFromCartAsync(int userId, CreateOrderRequestDto dto)
         {
-            var cart = await _cartRepository.GetOrCreateCartByUserIdAsync(userId);
-            if (cart.CartItems == null || cart.CartItems.Count == 0)
-            {
-                throw new BadRequestException("Cannot create an order from an empty cart.");
-            }
-
-            var orderItems = cart.CartItems.Select(ci => new OrderItem
-            {
-                ProductId = ci.ProductId,
-                Size = ci.Size,
-                Quantity = ci.Quantity,
-                UnitPriceAtPurchase = ci.Product?.Price ?? 0,
-                Status = OrderItemStatus.Pending
-            }).ToList();
-
-            var totalPrice = orderItems.Sum(oi => oi.UnitPriceAtPurchase * oi.Quantity);
-
-            var order = new Order
-            {
-                UserId = userId,
-                RecipientName = dto.RecipientName,
-                ContactPhone = dto.ContactPhone,
-                ShippingAddress = dto.ShippingAddress,
-                PaymentMethod = dto.PaymentMethod,
-                Status = OrderStatus.Pending,
-                TotalPrice = totalPrice,
-                CreatedAt = DateTime.UtcNow,
-                OrderItems = orderItems
-            };
-
-            var createdOrder = await _orderRepository.CreateOrderAsync(order);
-            await _cartRepository.ClearCartAsync(cart.Id);
-
+            var createdOrder = await _orderRepository.CreateOrderFromCartTransactionAsync(userId, dto);
             return MapToDto(createdOrder);
         }
 
