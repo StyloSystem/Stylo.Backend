@@ -43,7 +43,6 @@ namespace Stylo.Backend.Stylo.API.Extensions
 
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IProfileService, ProfileService>();
 
             services.AddScoped<IFavoriteRepository, FavoriteRepository>();
             services.AddScoped<IFavoriteService, FavoriteService>();

@@ -53,7 +53,7 @@ namespace Stylo.Backend.Stylo.API.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        [Consumes("application/json")]
+        [Consumes("multipart/form-data")]
         [ProducesResponseType(
             typeof(ProductDto),
             StatusCodes.Status201Created)]
@@ -70,7 +70,7 @@ namespace Stylo.Backend.Stylo.API.Controllers
             typeof(ErrorResponseDto),
             StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Create(
-            [FromBody] CreateProductDto dto)
+            [FromForm] CreateProductDto dto)
         {
             var product = await _productService.CreateAsync(dto);
 

@@ -76,32 +76,5 @@ namespace Stylo.Backend.Stylo.API.Controllers
             var order = await _orderService.CancelOrderAsync(userId, IsAdmin(), id);
             return Ok(order);
         }
-
-        [HttpPut("{id}/items/{itemId}")]
-        [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateOrderItem(int id, int itemId, [FromBody] UpdateOrderItemRequestDto request)
-        {
-            var userId = GetUserId();
-            var order = await _orderService.UpdateOrderItemAsync(userId, IsAdmin(), id, itemId, request);
-            return Ok(order);
-        }
-
-        [HttpPut("{id}/items/{itemId}/confirm")]
-        [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ConfirmOrderItem(int id, int itemId)
-        {
-            var userId = GetUserId();
-            var order = await _orderService.ConfirmOrderItemAsync(userId, IsAdmin(), id, itemId);
-            return Ok(order);
-        }
-
-        [HttpPut("{id}/items/{itemId}/cancel")]
-        [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
-        public async Task<IActionResult> CancelOrderItem(int id, int itemId)
-        {
-            var userId = GetUserId();
-            var order = await _orderService.CancelOrderItemAsync(userId, IsAdmin(), id, itemId);
-            return Ok(order);
-        }
     }
 }

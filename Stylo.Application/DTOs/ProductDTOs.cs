@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http;
 
 namespace Stylo.Backend.Stylo.Application.DTOs
 {
@@ -94,6 +95,8 @@ namespace Stylo.Backend.Stylo.Application.DTOs
 
         [JsonPropertyName("imagePublicId")]
         public string? ImagePublicId { get; set; }
+
+        public IFormFile? Image { get; set; }
 
         [Required(ErrorMessage = "Gender is required.")]
         [JsonPropertyName("gender")]
