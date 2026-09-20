@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Http;
 
 namespace Stylo.Backend.Stylo.Application.DTOs
 {
@@ -42,8 +41,17 @@ namespace Stylo.Backend.Stylo.Application.DTOs
         [JsonPropertyName("imageUrl")]
         public string? ImageUrl { get; set; }
 
+        [JsonPropertyName("imagePublicId")]
+        public string? ImagePublicId { get; set; }
+
         [JsonPropertyName("gender")]
         public string Gender { get; set; } = string.Empty;
+
+        [JsonPropertyName("size")]
+        public string? Size { get; set; }
+
+        [JsonPropertyName("stock")]
+        public int Stock { get; set; }
 
         [JsonPropertyName("category")]
         public ProductCategoryDto Category { get; set; } = null!;
@@ -84,8 +92,8 @@ namespace Stylo.Backend.Stylo.Application.DTOs
         [JsonPropertyName("imageUrl")]
         public string? ImageUrl { get; set; }
 
-        [JsonPropertyName("image")]
-        public IFormFile? Image { get; set; }
+        [JsonPropertyName("imagePublicId")]
+        public string? ImagePublicId { get; set; }
 
         [Required(ErrorMessage = "Gender is required.")]
         [JsonPropertyName("gender")]
@@ -95,7 +103,12 @@ namespace Stylo.Backend.Stylo.Application.DTOs
         [JsonPropertyName("categoryId")]
         public int CategoryId { get; set; }
 
-        [Required(ErrorMessage = "At least one product size and stock is required.")]
+        [JsonPropertyName("size")]
+        public string? Size { get; set; }
+
+        [JsonPropertyName("stock")]
+        public int? Stock { get; set; }
+
         [JsonPropertyName("sizes")]
         public List<CreateProductSizeDto> Sizes { get; set; } = new();
     }
@@ -118,8 +131,8 @@ namespace Stylo.Backend.Stylo.Application.DTOs
         [JsonPropertyName("imageUrl")]
         public string? ImageUrl { get; set; }
 
-        [JsonPropertyName("image")]
-        public IFormFile? Image { get; set; }
+        [JsonPropertyName("imagePublicId")]
+        public string? ImagePublicId { get; set; }
 
         [Required(ErrorMessage = "Gender is required.")]
         [JsonPropertyName("gender")]
@@ -128,6 +141,12 @@ namespace Stylo.Backend.Stylo.Application.DTOs
         [Range(1, int.MaxValue, ErrorMessage = "Valid Category ID is required.")]
         [JsonPropertyName("categoryId")]
         public int CategoryId { get; set; }
+
+        [JsonPropertyName("size")]
+        public string? Size { get; set; }
+
+        [JsonPropertyName("stock")]
+        public int? Stock { get; set; }
 
         [JsonPropertyName("sizes")]
         public List<CreateProductSizeDto> Sizes { get; set; } = new();

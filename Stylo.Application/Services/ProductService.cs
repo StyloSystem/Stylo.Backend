@@ -93,14 +93,17 @@ namespace Stylo.Backend.Stylo.Application.Services
                     "CATEGORY_NOT_FOUND");
             }
 
-            if (dto.Image == null || dto.Image.Length == 0)
+            if (!string.IsNullOrWhiteSpace(dto.Size) && (dto.Sizes == null || !dto.Sizes.Any()))
             {
-                throw new BadRequestException(
-                    "Image file is required.",
-                    "INVALID_IMAGE");
+                dto.Sizes = new List<CreateProductSizeDto>
+                {
+                    new CreateProductSizeDto
+                    {
+                        Size = dto.Size,
+                        Stock = dto.Stock ?? 0
+                    }
+                };
             }
-
-            var imageResult = await _imageService.UploadImageAsync(dto.Image);
 
             var product = new Product
             {
@@ -109,8 +112,12 @@ namespace Stylo.Backend.Stylo.Application.Services
                     ? null
                     : dto.Description.Trim(),
                 Price = dto.Price,
-                ImageUrl = imageResult.SecureUrl,
-                ImagePublicId = imageResult.PublicId,
+                ImageUrl = string.IsNullOrWhiteSpace(dto.ImageUrl)
+                    ? null
+                    : dto.ImageUrl.Trim(),
+                ImagePublicId = string.IsNullOrWhiteSpace(dto.ImagePublicId)
+                    ? null
+                    : dto.ImagePublicId.Trim(),
                 Gender = gender,
                 CategoryId = dto.CategoryId
             };
@@ -123,9 +130,9 @@ namespace Stylo.Backend.Stylo.Application.Services
             }
             catch
             {
-                if (!string.IsNullOrEmpty(imageResult.PublicId))
+                if (!string.IsNullOrWhiteSpace(dto.ImagePublicId))
                 {
-                    await _imageService.DeleteImageAsync(imageResult.PublicId);
+                    await _imageService.DeleteImageAsync(dto.ImagePublicId);
                 }
                 throw;
             }
@@ -134,9 +141,9 @@ namespace Stylo.Backend.Stylo.Application.Services
 
             if (createdProduct == null)
             {
-                if (!string.IsNullOrEmpty(imageResult.PublicId))
+                if (!string.IsNullOrWhiteSpace(dto.ImagePublicId))
                 {
-                    await _imageService.DeleteImageAsync(imageResult.PublicId);
+                    await _imageService.DeleteImageAsync(dto.ImagePublicId);
                 }
                 throw new NotFoundException(
                     "Product could not be retrieved after creation.",
@@ -199,14 +206,31 @@ namespace Stylo.Backend.Stylo.Application.Services
             string? newPublicIdToCleanupOnFailure = null;
             string? oldPublicIdToDelete = null;
 
-            if (dto.Image != null && dto.Image.Length > 0)
+            if (!string.IsNullOrWhiteSpace(dto.ImagePublicId) && dto.ImagePublicId != product.ImagePublicId)
             {
-                var newImageResult = await _imageService.UploadImageAsync(dto.Image);
-                newPublicIdToCleanupOnFailure = newImageResult.PublicId;
+                newPublicIdToCleanupOnFailure = dto.ImagePublicId;
                 oldPublicIdToDelete = product.ImagePublicId;
 
-                product.ImageUrl = newImageResult.SecureUrl;
-                product.ImagePublicId = newImageResult.PublicId;
+                product.ImageUrl = string.IsNullOrWhiteSpace(dto.ImageUrl)
+                    ? null
+                    : dto.ImageUrl.Trim();
+                product.ImagePublicId = dto.ImagePublicId.Trim();
+            }
+            else if (!string.IsNullOrWhiteSpace(dto.ImageUrl) && string.IsNullOrWhiteSpace(dto.ImagePublicId))
+            {
+                product.ImageUrl = dto.ImageUrl.Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(dto.Size) && (dto.Sizes == null || !dto.Sizes.Any()))
+            {
+                dto.Sizes = new List<CreateProductSizeDto>
+                {
+                    new CreateProductSizeDto
+                    {
+                        Size = dto.Size,
+                        Stock = dto.Stock ?? 0
+                    }
+                };
             }
 
             UpdateProductSizes(product, dto.Sizes);
@@ -217,14 +241,14 @@ namespace Stylo.Backend.Stylo.Application.Services
             }
             catch
             {
-                if (!string.IsNullOrEmpty(newPublicIdToCleanupOnFailure))
+                if (!string.IsNullOrWhiteSpace(newPublicIdToCleanupOnFailure))
                 {
                     await _imageService.DeleteImageAsync(newPublicIdToCleanupOnFailure);
                 }
                 throw;
             }
 
-            if (!string.IsNullOrEmpty(oldPublicIdToDelete))
+            if (!string.IsNullOrWhiteSpace(oldPublicIdToDelete) && oldPublicIdToDelete != product.ImagePublicId)
             {
                 try
                 {
@@ -258,8 +282,6 @@ namespace Stylo.Backend.Stylo.Application.Services
                     "PRODUCT_NOT_FOUND");
             }
 
-            
-
             await _productRepository.DeleteAsync(product);
         }
 
@@ -267,12 +289,16 @@ namespace Stylo.Backend.Stylo.Application.Services
             Product product,
             List<CreateProductSizeDto> sizeDtos)
         {
+            if (sizeDtos == null || !sizeDtos.Any())
+            {
+                throw new BadRequestException("At least one product size and stock is required.", "INVALID_SIZE");
+            }
+
             var existingSizes = new HashSet<Size>();
 
             foreach (var sizeDto in sizeDtos)
             {
-                if (sizeDto == null ||
-                    string.IsNullOrWhiteSpace(sizeDto.Size))
+                if (sizeDto == null || string.IsNullOrWhiteSpace(sizeDto.Size))
                 {
                     throw new BadRequestException(
                         "Size is required.",
@@ -308,56 +334,65 @@ namespace Stylo.Backend.Stylo.Application.Services
             Product product,
             List<CreateProductSizeDto> sizeDtos)
         {
-            var requestedSizes = new HashSet<Size>();
-
-            foreach (var sizeDto in sizeDtos)
+            if (sizeDtos != null && sizeDtos.Any())
             {
-                if (sizeDto == null ||
-                    string.IsNullOrWhiteSpace(sizeDto.Size))
-                {
-                    throw new BadRequestException(
-                        "Size is required.",
-                        "INVALID_SIZE");
-                }
+                var requestedSizes = new HashSet<Size>();
 
-                if (!Enum.TryParse<Size>(
-                        sizeDto.Size.Trim(),
-                        true,
-                        out var size))
+                foreach (var sizeDto in sizeDtos)
                 {
-                    throw new BadRequestException(
-                        $"Invalid size: {sizeDto.Size}.",
-                        "INVALID_SIZE");
-                }
-
-                if (!requestedSizes.Add(size))
-                {
-                    throw new BadRequestException(
-                        $"Duplicate size: {sizeDto.Size}.",
-                        "DUPLICATE_SIZE");
-                }
-
-                var existingSize = product.ProductSizes
-                    .FirstOrDefault(ps => ps.Size == size);
-
-                if (existingSize != null)
-                {
-                    existingSize.Stock = sizeDto.Stock;
-                }
-                else
-                {
-                    product.ProductSizes.Add(new ProductSize
+                    if (sizeDto == null || string.IsNullOrWhiteSpace(sizeDto.Size))
                     {
-                        ProductId = product.Id,
-                        Size = size,
-                        Stock = sizeDto.Stock
-                    });
+                        throw new BadRequestException(
+                            "Size is required.",
+                            "INVALID_SIZE");
+                    }
+
+                    if (!Enum.TryParse<Size>(
+                            sizeDto.Size.Trim(),
+                            true,
+                            out var size))
+                    {
+                        throw new BadRequestException(
+                            $"Invalid size: {sizeDto.Size}.",
+                            "INVALID_SIZE");
+                    }
+
+                    if (!requestedSizes.Add(size))
+                    {
+                        throw new BadRequestException(
+                            $"Duplicate size: {sizeDto.Size}.",
+                            "DUPLICATE_SIZE");
+                    }
+
+                    var existingSize = product.ProductSizes
+                        .FirstOrDefault(ps => ps.Size == size);
+
+                    if (existingSize != null)
+                    {
+                        existingSize.Stock = sizeDto.Stock;
+                    }
+                    else
+                    {
+                        product.ProductSizes.Add(new ProductSize
+                        {
+                            ProductId = product.Id,
+                            Size = size,
+                            Stock = sizeDto.Stock
+                        });
+                    }
                 }
+            }
+
+            if (!product.ProductSizes.Any())
+            {
+                throw new BadRequestException("At least one product size and stock is required.", "INVALID_SIZE");
             }
         }
 
         private static ProductDto ToDto(Product product)
         {
+            var firstSize = product.ProductSizes.FirstOrDefault();
+
             return new ProductDto
             {
                 Id = product.Id,
@@ -365,7 +400,10 @@ namespace Stylo.Backend.Stylo.Application.Services
                 Description = product.Description,
                 Price = product.Price,
                 ImageUrl = product.ImageUrl,
+                ImagePublicId = product.ImagePublicId,
                 Gender = product.Gender.ToString(),
+                Size = firstSize?.Size.ToString(),
+                Stock = firstSize?.Stock ?? 0,
 
                 Category = new ProductCategoryDto
                 {
@@ -378,7 +416,7 @@ namespace Stylo.Backend.Stylo.Application.Services
                     {
                         Size = ps.Size.ToString(),
                         Stock = ps.Stock,
-                        IsAvailable = ps.Stock > 0 
+                        IsAvailable = ps.Stock > 0
                     })
                     .ToList(),
 
