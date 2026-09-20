@@ -12,7 +12,7 @@ namespace Stylo.Backend.Stylo.Infrastructure.Services
 {
     public class CloudinaryImageService : IImageService
     {
-        private readonly Cloudinary _cloudinary;
+        private readonly IOptions<CloudinarySettings> _config;
         private static readonly HashSet<string> AllowedMimeTypes = new(StringComparer.OrdinalIgnoreCase)
         {
             "image/jpeg",
@@ -33,13 +33,25 @@ namespace Stylo.Backend.Stylo.Infrastructure.Services
 
         public CloudinaryImageService(IOptions<CloudinarySettings> config)
         {
-            var settings = config.Value;
+            _config = config;
+        }
+
+        private Cloudinary GetCloudinaryClient()
+        {
+            var settings = _config.Value;
+            if (string.IsNullOrWhiteSpace(settings.CloudName) ||
+                string.IsNullOrWhiteSpace(settings.ApiKey) ||
+                string.IsNullOrWhiteSpace(settings.ApiSecret))
+            {
+                throw new BadRequestException("Cloudinary credentials are not configured.", "CLOUDINARY_NOT_CONFIGURED");
+            }
+
             var account = new Account(
                 settings.CloudName,
                 settings.ApiKey,
                 settings.ApiSecret);
 
-            _cloudinary = new Cloudinary(account);
+            return new Cloudinary(account);
         }
 
         public async Task<ApplicationImageUploadResult> UploadImageAsync(IFormFile file)
@@ -60,6 +72,8 @@ namespace Stylo.Backend.Stylo.Infrastructure.Services
                 throw new BadRequestException("Invalid image format. Only JPG, JPEG, PNG, and WEBP formats are allowed.", "INVALID_IMAGE_FORMAT");
             }
 
+            var cloudinary = GetCloudinaryClient();
+
             using var stream = file.OpenReadStream();
             var uploadParams = new ImageUploadParams
             {
@@ -67,7 +81,7 @@ namespace Stylo.Backend.Stylo.Infrastructure.Services
                 Folder = "stylo/products"
             };
 
-            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+            var uploadResult = await cloudinary.UploadAsync(uploadParams);
 
             if (uploadResult.Error != null)
             {
@@ -88,8 +102,10 @@ namespace Stylo.Backend.Stylo.Infrastructure.Services
                 return;
             }
 
+            var cloudinary = GetCloudinaryClient();
+
             var deleteParams = new DeletionParams(publicId);
-            await _cloudinary.DestroyAsync(deleteParams);
+            await cloudinary.DestroyAsync(deleteParams);
         }
     }
 }
