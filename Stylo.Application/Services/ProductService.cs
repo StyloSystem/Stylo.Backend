@@ -105,6 +105,16 @@ namespace Stylo.Backend.Stylo.Application.Services
                 };
             }
 
+            string? imageUrl = string.IsNullOrWhiteSpace(dto.ImageUrl) ? null : dto.ImageUrl.Trim();
+            string? imagePublicId = string.IsNullOrWhiteSpace(dto.ImagePublicId) ? null : dto.ImagePublicId.Trim();
+
+            if (dto.Image != null && dto.Image.Length > 0)
+            {
+                var uploadResult = await _imageService.UploadImageAsync(dto.Image);
+                imageUrl = uploadResult.SecureUrl;
+                imagePublicId = uploadResult.PublicId;
+            }
+
             var product = new Product
             {
                 Name = dto.Name.Trim(),
@@ -112,12 +122,8 @@ namespace Stylo.Backend.Stylo.Application.Services
                     ? null
                     : dto.Description.Trim(),
                 Price = dto.Price,
-                ImageUrl = string.IsNullOrWhiteSpace(dto.ImageUrl)
-                    ? null
-                    : dto.ImageUrl.Trim(),
-                ImagePublicId = string.IsNullOrWhiteSpace(dto.ImagePublicId)
-                    ? null
-                    : dto.ImagePublicId.Trim(),
+                ImageUrl = imageUrl,
+                ImagePublicId = imagePublicId,
                 Gender = gender,
                 CategoryId = dto.CategoryId
             };
@@ -130,9 +136,9 @@ namespace Stylo.Backend.Stylo.Application.Services
             }
             catch
             {
-                if (!string.IsNullOrWhiteSpace(dto.ImagePublicId))
+                if (!string.IsNullOrWhiteSpace(imagePublicId))
                 {
-                    await _imageService.DeleteImageAsync(dto.ImagePublicId);
+                    await _imageService.DeleteImageAsync(imagePublicId);
                 }
                 throw;
             }
@@ -141,9 +147,9 @@ namespace Stylo.Backend.Stylo.Application.Services
 
             if (createdProduct == null)
             {
-                if (!string.IsNullOrWhiteSpace(dto.ImagePublicId))
+                if (!string.IsNullOrWhiteSpace(imagePublicId))
                 {
-                    await _imageService.DeleteImageAsync(dto.ImagePublicId);
+                    await _imageService.DeleteImageAsync(imagePublicId);
                 }
                 throw new NotFoundException(
                     "Product could not be retrieved after creation.",
