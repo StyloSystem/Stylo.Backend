@@ -53,7 +53,6 @@ namespace Stylo.Backend.Stylo.API.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        [Consumes("multipart/form-data")]
         [ProducesResponseType(
             typeof(ProductDto),
             StatusCodes.Status201Created)]
@@ -70,7 +69,7 @@ namespace Stylo.Backend.Stylo.API.Controllers
             typeof(ErrorResponseDto),
             StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Create(
-            [FromForm] CreateProductDto dto)
+            [FromBody] CreateProductDto dto)
         {
             var product = await _productService.CreateAsync(dto);
 
@@ -82,7 +81,6 @@ namespace Stylo.Backend.Stylo.API.Controllers
 
         [HttpPut("{id:int}")]
         [Authorize(Roles = "Admin")]
-        [Consumes("multipart/form-data")]
         [ProducesResponseType(
             typeof(ProductDto),
             StatusCodes.Status200OK)]
@@ -100,7 +98,7 @@ namespace Stylo.Backend.Stylo.API.Controllers
             StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Update(
             int id,
-            [FromForm] UpdateProductDto dto)
+            [FromBody] UpdateProductDto dto)
         {
             var product = await _productService.UpdateAsync(id, dto);
 
