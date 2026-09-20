@@ -310,5 +310,6 @@ namespace Stylo.Backend.Stylo.Application.Services
                 _tokenManagerService.InvalidateToken(token, expiration);
             }
         }
+        
     }
 }

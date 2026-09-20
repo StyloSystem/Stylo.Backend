@@ -79,4 +79,13 @@ namespace Stylo.Backend.Stylo.Application.DTOs
         [JsonPropertyName("errorCode")]
         public string ErrorCode { get; set; } = string.Empty;
     }
+
+    public class VerifyRegisterOtpDto
+    {
+        [JsonPropertyName("email")]
+        public string Email { get; set; } = string.Empty;
+
+        [JsonPropertyName("otp")]
+        public string Otp { get; set; } = string.Empty;
+    }
 }

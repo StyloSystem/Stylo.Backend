@@ -18,14 +18,55 @@ namespace Stylo.Backend.Stylo.API.Controllers
             _authService = authService;
         }
 
-        [HttpPost("register")]
+        [HttpPost("register/request")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status429TooManyRequests)]
+        public async Task<IActionResult> RequestRegisterOtp([FromBody] RegisterRequestDto request)
+        {
+            await _authService.RequestRegisterOtpAsync(request);
+            return Ok(new { message = "A verification code has been sent to your email." });
+        }
+
+        [HttpPost("register/verify")]
         [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status409Conflict)]
-        public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
+        public async Task<IActionResult> VerifyRegisterOtp([FromBody] VerifyRegisterOtpDto request)
         {
-            var result = await _authService.RegisterAsync(request);
+            var result = await _authService.VerifyRegisterOtpAsync(request);
             return Ok(result);
+        }
+
+        [HttpPost("forgot-password")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status429TooManyRequests)]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto request)
+        {
+            await _authService.ForgotPasswordAsync(request);
+            // Always the same message, whether the email exists or not.
+            return Ok(new { message = "If this email is registered, a reset code has been sent." });
+        }
+
+        [HttpPost("verify-reset-otp")]
+        [ProducesResponseType(typeof(ResetTokenResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> VerifyResetOtp([FromBody] VerifyResetOtpDto request)
+        {
+            var result = await _authService.VerifyResetOtpAsync(request);
+            return Ok(result);
+        }
+
+        [HttpPost("reset-password")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto request)
+        {
+            await _authService.ResetPasswordAsync(request);
+            return Ok(new { message = "Password has been reset successfully." });
         }
 
         [HttpPost("login")]
