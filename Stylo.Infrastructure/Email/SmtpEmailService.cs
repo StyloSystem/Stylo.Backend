@@ -1,0 +1,34 @@
+﻿using MailKit.Net.Smtp;
+using MailKit.Security;
+using Microsoft.Extensions.Options;
+using MimeKit;
+using Stylo.Backend.Stylo.Application.Interfaces;
+
+namespace Stylo.Backend.Stylo.Infrastructure.Email
+{
+    public class SmtpEmailService : IEmailService
+    {
+        private readonly EmailSettings _settings;
+
+        public SmtpEmailService(IOptions<EmailSettings> options)
+        {
+            _settings = options.Value;
+        }
+
+        public async Task SendEmailAsync(string toEmail, string subject, string htmlBody, CancellationToken cancellationToken = default)
+        {
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(_settings.FromName, _settings.FromEmail));
+            message.To.Add(MailboxAddress.Parse(toEmail));
+            message.Subject = subject;
+            message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
+
+            using var client = new SmtpClient();
+            await client.ConnectAsync(_settings.SmtpHost, _settings.SmtpPort,
+                _settings.UseSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None, cancellationToken);
+            await client.AuthenticateAsync(_settings.SmtpUser, _settings.SmtpPassword, cancellationToken);
+            await client.SendAsync(message, cancellationToken);
+            await client.DisconnectAsync(true, cancellationToken);
+        }
+    }
+}

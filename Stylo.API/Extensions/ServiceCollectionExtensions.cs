@@ -10,6 +10,9 @@ using Stylo.Backend.Stylo.Domain.Entities;
 using Stylo.Backend.Stylo.Infrastructure.Configurations;
 using Stylo.Backend.Stylo.Infrastructure.Data;
 using Stylo.Backend.Stylo.Infrastructure.Repositories;
+using Stylo.Backend.Stylo.Infrastructure.Caching;
+using Stylo.Backend.Stylo.Infrastructure.Email;
+using Stylo.Backend.Stylo.Application.Settings;
 using Stylo.Backend.Stylo.Infrastructure.Services;
 
 namespace Stylo.Backend.Stylo.API.Extensions
@@ -65,6 +68,7 @@ namespace Stylo.Backend.Stylo.API.Extensions
 
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<IOrderService, OrderService>();
+
 
             var secretKey = configuration["Jwt:SecretKey"] ?? "SuperSecretKeyForStyloBackendECommerceApp2026!";
             var issuer = configuration["Jwt:Issuer"] ?? "StyloAPI";
@@ -149,6 +153,22 @@ namespace Stylo.Backend.Stylo.API.Extensions
                         [new OpenApiSecuritySchemeReference("Bearer", document)] = []
                     });
             });
+
+            // Redis Cache 
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = configuration["Redis:ConnectionString"];
+                options.InstanceName = configuration["Redis:InstanceName"];
+            });
+            services.AddScoped<ICacheService, RedisCacheService>();
+
+            //  OTP 
+            services.Configure<OtpSettings>(configuration.GetSection("Otp"));
+            services.AddScoped<IOtpService, OtpService>();
+
+            // Email
+            services.Configure<EmailSettings>(configuration.GetSection("Email"));
+            services.AddScoped<IEmailService, SmtpEmailService>();
 
             return services;
         }
