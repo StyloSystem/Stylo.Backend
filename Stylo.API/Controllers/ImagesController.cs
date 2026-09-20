@@ -23,7 +23,7 @@ namespace Stylo.Backend.Stylo.API.Controllers
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> UploadImage([FromForm] IFormFile image)
+        public async Task<IActionResult> UploadImage(IFormFile image)
         {
             var result = await _imageService.UploadImageAsync(image);
 
