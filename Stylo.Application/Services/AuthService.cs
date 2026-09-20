@@ -19,6 +19,7 @@ namespace Stylo.Backend.Stylo.Application.Services
         private readonly IEmailService _emailService;
         private readonly ICacheService _cacheService;
         private readonly IPasswordHasher<User> _passwordHasher;
+        private readonly ITokenManagerService _tokenManagerService;
         private readonly OtpSettings _otpSettings;
         public readonly ITokenManagerService _tokenManagerService;
 
@@ -29,12 +30,18 @@ namespace Stylo.Backend.Stylo.Application.Services
             IEmailService emailService,
             ICacheService cacheService,
             IPasswordHasher<User> passwordHasher,
+            IEmailService emailService,
+            ICacheService cacheService,
+            IPasswordHasher<User> passwordHasher,
             IOptions<OtpSettings> otpSettings,
-            ITokenManagerService tokenManagerService)   
+            ITokenManagerService tokenManagerService)
         {
             _userRepository = userRepository;
             _jwtTokenGenerator = jwtTokenGenerator;
             _otpService = otpService;
+            _emailService = emailService;
+            _cacheService = cacheService;
+            _passwordHasher = passwordHasher;
             _emailService = emailService;
             _cacheService = cacheService;
             _passwordHasher = passwordHasher;

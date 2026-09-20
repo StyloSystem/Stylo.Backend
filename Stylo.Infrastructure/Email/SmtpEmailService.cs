@@ -1,4 +1,4 @@
-﻿using MailKit.Net.Smtp;
+using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
@@ -23,9 +23,12 @@ namespace Stylo.Backend.Stylo.Infrastructure.Email
             message.Subject = subject;
             message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
 
+            var socketOptions = _settings.SmtpPort == 465
+                ? SecureSocketOptions.SslOnConnect
+                : (_settings.UseSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.Auto);
+
             using var client = new SmtpClient();
-            await client.ConnectAsync(_settings.SmtpHost, _settings.SmtpPort,
-                _settings.UseSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None, cancellationToken);
+            await client.ConnectAsync(_settings.SmtpHost, _settings.SmtpPort, socketOptions, cancellationToken);
             await client.AuthenticateAsync(_settings.SmtpUser, _settings.SmtpPassword, cancellationToken);
             await client.SendAsync(message, cancellationToken);
             await client.DisconnectAsync(true, cancellationToken);
