@@ -20,6 +20,7 @@ namespace Stylo.Backend.Stylo.Application.Services
         private readonly ICacheService _cacheService;
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly OtpSettings _otpSettings;
+        private readonly ITokenManagerService _tokenManagerService;
 
         public AuthService(
             IUserRepository userRepository,
@@ -28,7 +29,8 @@ namespace Stylo.Backend.Stylo.Application.Services
             IEmailService emailService,
             ICacheService cacheService,
             IPasswordHasher<User> passwordHasher,
-            IOptions<OtpSettings> otpSettings)   
+            IOptions<OtpSettings> otpSettings,
+            ITokenManagerService tokenManagerService)   
         {
             _userRepository = userRepository;
             _jwtTokenGenerator = jwtTokenGenerator;
@@ -36,7 +38,8 @@ namespace Stylo.Backend.Stylo.Application.Services
             _emailService = emailService;
             _cacheService = cacheService;
             _passwordHasher = passwordHasher;
-            _otpSettings = otpSettings.Value;   
+            _otpSettings = otpSettings.Value;
+            _tokenManagerService = tokenManagerService;
         }
 
         // Temporary registration data stored in Redis until the OTP is verified.
@@ -307,6 +310,6 @@ namespace Stylo.Backend.Stylo.Application.Services
                 _tokenManagerService.InvalidateToken(token, expiration);
             }
         }
-        }
+        
     }
 }

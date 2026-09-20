@@ -8,12 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MailKit" Version="4.18.0" />
-    <UserSecretsId>9e8bec68-3cab-4bf9-82bf-51320db4f23f</UserSecretsId>
-  </PropertyGroup>
-
-  <ItemGroup>
     <PackageReference Include="CloudinaryDotNet" Version="1.29.3" />
+    <PackageReference Include="MailKit" Version="4.18.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.12" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
