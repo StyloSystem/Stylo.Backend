@@ -26,6 +26,9 @@ namespace Stylo.Backend.Stylo.Infrastructure.Data.Configurations
 
             builder.Property(p => p.IsDeleted).HasDefaultValue(false);
 
+            builder.Property(p => p.ImagePublicId)
+                .HasMaxLength(500);
+
             
             builder.HasQueryFilter(p => !p.IsDeleted);
 
