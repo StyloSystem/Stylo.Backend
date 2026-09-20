@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using Stylo.Backend.Stylo.Application.DTOs;
 using Stylo.Backend.Stylo.Application.Exceptions;
 using Stylo.Backend.Stylo.Application.Interfaces;
 using Stylo.Backend.Stylo.Application.OTP.Enums;
+using Stylo.Backend.Stylo.Application.Settings;
 using Stylo.Backend.Stylo.Domain.Entities;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
@@ -17,6 +19,7 @@ namespace Stylo.Backend.Stylo.Application.Services
         private readonly IEmailService _emailService;
         private readonly ICacheService _cacheService;
         private readonly IPasswordHasher<User> _passwordHasher;
+        private readonly OtpSettings _otpSettings;
 
         public AuthService(
             IUserRepository userRepository,
@@ -24,7 +27,8 @@ namespace Stylo.Backend.Stylo.Application.Services
             IOtpService otpService,
             IEmailService emailService,
             ICacheService cacheService,
-            IPasswordHasher<User> passwordHasher)
+            IPasswordHasher<User> passwordHasher,
+            IOptions<OtpSettings> otpSettings)   
         {
             _userRepository = userRepository;
             _jwtTokenGenerator = jwtTokenGenerator;
@@ -32,6 +36,7 @@ namespace Stylo.Backend.Stylo.Application.Services
             _emailService = emailService;
             _cacheService = cacheService;
             _passwordHasher = passwordHasher;
+            _otpSettings = otpSettings.Value;   
         }
 
         // Temporary registration data stored in Redis until the OTP is verified.
@@ -183,6 +188,92 @@ namespace Stylo.Backend.Stylo.Application.Services
                 Email = user.Email ?? string.Empty,
                 Role = user.Role
             };
+        }
+
+        private static string BuildResetTokenKey(string token) => $"reset-token:{token}";
+
+        private static string GenerateSecureResetToken()
+        {
+            var bytes = System.Security.Cryptography.RandomNumberGenerator.GetBytes(32);
+            return Convert.ToHexString(bytes);
+        }
+
+        public async Task ForgotPasswordAsync(ForgotPasswordDto dto)
+        {
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Email))
+                throw new BadRequestException("Email is required.");
+
+            var user = await _userRepository.GetByEmailAsync(dto.Email);
+
+            // Important: do NOT reveal whether the email exists or not.
+            // If the user doesn't exist, we silently do nothing and still
+            // return success from the controller, so this method just returns.
+            if (user == null)
+                return;
+
+            // Throws RateLimitExceededException automatically if requested too soon.
+            var otp = await _otpService.GenerateAndStoreOtpAsync(dto.Email, OtpPurpose.ResetPassword);
+
+            await _emailService.SendEmailAsync(
+                dto.Email,
+                "Stylo - Password Reset Code",
+                $"<p>Hi {user.Name},</p>" +
+                $"<p>Your password reset code is: <b>{otp}</b></p>" +
+                $"<p>This code is valid for 5 minutes. If you didn't request this, you can ignore this email.</p>");
+        }
+
+        public async Task<ResetTokenResponseDto> VerifyResetOtpAsync(VerifyResetOtpDto dto)
+        {
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Otp))
+                throw new BadRequestException("Email and OTP are required.");
+
+            var verificationResult = await _otpService.VerifyOtpAsync(dto.Email, OtpPurpose.ResetPassword, dto.Otp);
+
+            switch (verificationResult)
+            {
+                case OtpVerificationResult.Expired:
+                    throw new BadRequestException("The verification code has expired. Please request a new one.");
+                case OtpVerificationResult.MaxAttemptsExceeded:
+                    throw new BadRequestException("Too many failed attempts. Please request a new verification code.");
+                case OtpVerificationResult.InvalidOtp:
+                    throw new BadRequestException("Invalid verification code.");
+            }
+
+            var resetToken = GenerateSecureResetToken();
+
+            await _cacheService.SetStringAsync(
+                BuildResetTokenKey(resetToken),
+                dto.Email.Trim().ToLowerInvariant(),
+                TimeSpan.FromMinutes(_otpSettings.ResetTokenExpirationMinutes));
+
+            return new ResetTokenResponseDto { ResetToken = resetToken };
+        }
+
+        public async Task ResetPasswordAsync(ResetPasswordDto dto)
+        {
+            if (dto == null || string.IsNullOrWhiteSpace(dto.ResetToken))
+                throw new BadRequestException("Reset token is required.");
+
+            if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 6)
+                throw new BadRequestException("Password must be at least 6 characters long.");
+
+            if (dto.NewPassword != dto.ConfirmPassword)
+                throw new BadRequestException("Password and confirm password do not match.");
+
+            var tokenKey = BuildResetTokenKey(dto.ResetToken);
+            var email = await _cacheService.GetStringAsync(tokenKey);
+
+            if (email is null)
+                throw new BadRequestException("Invalid or expired reset token. Please start the password reset process again.");
+
+            var user = await _userRepository.GetByEmailAsync(email);
+            if (user == null)
+                throw new NotFoundException("User not found.");
+
+            await _userRepository.UpdatePasswordAsync(user, dto.NewPassword);
+
+            // Invalidate the token so it can't be reused.
+            await _cacheService.RemoveAsync(tokenKey);
         }
     }
 }
