@@ -7,5 +7,6 @@ namespace Stylo.Backend.Stylo.Application.Interfaces
         Task<AuthResponseDto> RegisterAsync(RegisterRequestDto dto);
         Task<AuthResponseDto> LoginAsync(LoginRequestDto dto);
         Task<UserProfileDto> GetMeAsync(int userId);
+        Task LogoutAsync(int userId, string token);
     }
 }

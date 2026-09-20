@@ -10,11 +10,13 @@ namespace Stylo.Backend.Stylo.Application.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
+        private readonly ITokenManagerService _tokenManagerService;
 
-        public AuthService(IUserRepository userRepository, IJwtTokenGenerator jwtTokenGenerator)
+        public AuthService(IUserRepository userRepository, IJwtTokenGenerator jwtTokenGenerator, ITokenManagerService tokenManagerService)
         {
             _userRepository = userRepository;
             _jwtTokenGenerator = jwtTokenGenerator;
+            _tokenManagerService = tokenManagerService;
         }
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto dto)
@@ -126,6 +128,38 @@ namespace Stylo.Backend.Stylo.Application.Services
                 Email = user.Email ?? string.Empty,
                 Role = user.Role
             };
+        }
+
+        public async Task LogoutAsync(int userId, string token)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                throw new NotFoundException("User Not Authenticated");
+            }
+
+            DateTime expiration = DateTime.UtcNow.AddHours(24);
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                try
+                {
+                    var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                    if (handler.CanReadToken(token))
+                    {
+                        var jwtToken = handler.ReadJwtToken(token);
+                        if (jwtToken.ValidTo != DateTime.MinValue)
+                        {
+                            expiration = jwtToken.ValidTo;
+                        }
+                    }
+                }
+                catch
+                {
+                    // Fallback to default expiration
+                }
+
+                _tokenManagerService.InvalidateToken(token, expiration);
+            }
         }
     }
 }

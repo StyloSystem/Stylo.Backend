@@ -16,6 +16,18 @@ namespace Stylo.Backend.Stylo.Infrastructure.Data.Configurations
                 .IsRequired()
                 .HasMaxLength(50);
 
+            builder.Property(u => u.Email)
+                .UseCollation("SQL_Latin1_General_CP1_CS_AS");
+
+            builder.Property(u => u.NormalizedEmail)
+                .UseCollation("SQL_Latin1_General_CP1_CS_AS");
+
+            builder.Property(u => u.UserName)
+                .UseCollation("SQL_Latin1_General_CP1_CS_AS");
+
+            builder.Property(u => u.NormalizedUserName)
+                .UseCollation("SQL_Latin1_General_CP1_CS_AS");
+
             var adminUser = new User
             {
                 Id = 1,

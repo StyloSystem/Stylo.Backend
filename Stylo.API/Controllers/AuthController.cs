@@ -57,9 +57,25 @@ namespace Stylo.Backend.Stylo.API.Controllers
         [Authorize]
         [HttpPost("logout")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public IActionResult Logout()
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Logout()
         {
-            return Ok(new { message = "Logged out successfully." });
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+            if (!int.TryParse(userIdClaim, out var userId))
+            {
+                throw new UnauthorizedException("Invalid user identifier in token.");
+            }
+
+            var rawHeader = Request.Headers["Authorization"].FirstOrDefault();
+            var token = string.Empty;
+            if (!string.IsNullOrWhiteSpace(rawHeader) && rawHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                token = rawHeader.Substring("Bearer ".Length).Trim();
+            }
+
+            await _authService.LogoutAsync(userId, token);
+            return Ok(new { success = true, message = "User Logout Successfully" });
         }
     }
 }

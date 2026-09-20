@@ -23,8 +23,12 @@ namespace Stylo.Backend.Stylo.Infrastructure.Repositories
         public async Task<User?> GetByEmailAsync(string email)
         {
             if (string.IsNullOrWhiteSpace(email)) return null;
-            var normalizedEmail = email.Trim().ToUpperInvariant();
-            return await _context.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail || u.Email == email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email || u.NormalizedEmail == email);
+            if (user != null && string.Equals(user.Email, email, StringComparison.Ordinal))
+            {
+                return user;
+            }
+            return null;
         }
 
         public async Task<User?> GetByIdAsync(int id)
@@ -35,8 +39,8 @@ namespace Stylo.Backend.Stylo.Infrastructure.Repositories
         public async Task<bool> EmailExistsAsync(string email)
         {
             if (string.IsNullOrWhiteSpace(email)) return false;
-            var normalizedEmail = email.Trim().ToUpperInvariant();
-            return await _context.Users.AnyAsync(u => u.NormalizedEmail == normalizedEmail || u.Email == email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email || u.NormalizedEmail == email);
+            return user != null && string.Equals(user.Email, email, StringComparison.Ordinal);
         }
 
         public async Task<bool> CreateUserAsync(User user, string password)
@@ -44,8 +48,8 @@ namespace Stylo.Backend.Stylo.Infrastructure.Repositories
             user.UserName = user.Email;
             if (user.Email != null)
             {
-                user.NormalizedEmail = user.Email.ToUpperInvariant();
-                user.NormalizedUserName = user.Email.ToUpperInvariant();
+                user.NormalizedEmail = user.Email;
+                user.NormalizedUserName = user.Email;
             }
             user.SecurityStamp = Guid.NewGuid().ToString();
             user.ConcurrencyStamp = Guid.NewGuid().ToString();

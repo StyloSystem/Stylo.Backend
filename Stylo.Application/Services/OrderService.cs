@@ -40,17 +40,17 @@ namespace Stylo.Backend.Stylo.Application.Services
             return MapToDto(order);
         }
 
-        public async Task<OrderDto> ConfirmOrderAsync(int userId, int orderId)
+        public async Task<OrderDto> ConfirmOrderAsync(int userId, bool isAdmin, int orderId)
         {
             var order = await _orderRepository.GetOrderByIdAsync(orderId);
-            if (order == null || order.UserId != userId)
+            if (order == null || (!isAdmin && order.UserId != userId))
             {
                 throw new NotFoundException($"Order with ID {orderId} not found.");
             }
 
-            if (order.Status == OrderStatus.Cancelled)
+            if (order.Status != OrderStatus.Pending)
             {
-                throw new BadRequestException("Cannot confirm a cancelled order.");
+                throw new BadRequestException("Order is no longer Pending and cannot be modified.");
             }
 
             order.Status = OrderStatus.Confirmed;
@@ -67,12 +67,17 @@ namespace Stylo.Backend.Stylo.Application.Services
             return MapToDto(order);
         }
 
-        public async Task<OrderDto> CancelOrderAsync(int userId, int orderId)
+        public async Task<OrderDto> CancelOrderAsync(int userId, bool isAdmin, int orderId)
         {
             var order = await _orderRepository.GetOrderByIdAsync(orderId);
-            if (order == null || order.UserId != userId)
+            if (order == null || (!isAdmin && order.UserId != userId))
             {
                 throw new NotFoundException($"Order with ID {orderId} not found.");
+            }
+
+            if (order.Status != OrderStatus.Pending)
+            {
+                throw new BadRequestException("Order is no longer Pending and cannot be modified.");
             }
 
             order.Status = OrderStatus.Cancelled;
@@ -86,12 +91,69 @@ namespace Stylo.Backend.Stylo.Application.Services
             return MapToDto(order);
         }
 
-        public async Task<OrderDto> UpdateOrderItemAsync(int userId, int orderId, int orderItemId, UpdateOrderItemRequestDto dto)
+        public async Task<OrderDto> ConfirmOrderItemAsync(int userId, bool isAdmin, int orderId, int orderItemId)
         {
             var order = await _orderRepository.GetOrderByIdAsync(orderId);
-            if (order == null || order.UserId != userId)
+            if (order == null || (!isAdmin && order.UserId != userId))
             {
                 throw new NotFoundException($"Order with ID {orderId} not found.");
+            }
+
+            if (order.Status != OrderStatus.Pending)
+            {
+                throw new BadRequestException("Order is no longer Pending and cannot be modified.");
+            }
+
+            var item = order.OrderItems.FirstOrDefault(oi => oi.Id == orderItemId);
+            if (item == null)
+            {
+                throw new NotFoundException($"Order item with ID {orderItemId} not found in this order.");
+            }
+
+            item.Status = OrderItemStatus.Confirmed;
+
+            RecalculateOrderTotalsAndStatus(order);
+            await _orderRepository.UpdateOrderAsync(order);
+            return MapToDto(order);
+        }
+
+        public async Task<OrderDto> CancelOrderItemAsync(int userId, bool isAdmin, int orderId, int orderItemId)
+        {
+            var order = await _orderRepository.GetOrderByIdAsync(orderId);
+            if (order == null || (!isAdmin && order.UserId != userId))
+            {
+                throw new NotFoundException($"Order with ID {orderId} not found.");
+            }
+
+            if (order.Status != OrderStatus.Pending)
+            {
+                throw new BadRequestException("Order is no longer Pending and cannot be modified.");
+            }
+
+            var item = order.OrderItems.FirstOrDefault(oi => oi.Id == orderItemId);
+            if (item == null)
+            {
+                throw new NotFoundException($"Order item with ID {orderItemId} not found in this order.");
+            }
+
+            item.Status = OrderItemStatus.Cancelled;
+
+            RecalculateOrderTotalsAndStatus(order);
+            await _orderRepository.UpdateOrderAsync(order);
+            return MapToDto(order);
+        }
+
+        public async Task<OrderDto> UpdateOrderItemAsync(int userId, bool isAdmin, int orderId, int orderItemId, UpdateOrderItemRequestDto dto)
+        {
+            var order = await _orderRepository.GetOrderByIdAsync(orderId);
+            if (order == null || (!isAdmin && order.UserId != userId))
+            {
+                throw new NotFoundException($"Order with ID {orderId} not found.");
+            }
+
+            if (order.Status != OrderStatus.Pending)
+            {
+                throw new BadRequestException("Order is no longer Pending and cannot be modified.");
             }
 
             var item = order.OrderItems.FirstOrDefault(oi => oi.Id == orderItemId);
