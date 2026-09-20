@@ -49,10 +49,10 @@ namespace Stylo.Backend.Stylo.API.Controllers
 
         [HttpPut("items/{id}")]
         [ProducesResponseType(typeof(CartDto), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateItemQuantity(int id, [FromBody] UpdateCartItemRequestDto request)
+        public async Task<IActionResult> UpdateCartItem(int id, [FromBody] UpdateCartItemRequestDto request)
         {
             var userId = GetUserId();
-            var cart = await _cartService.UpdateCartItemQuantityAsync(userId, id, request.Quantity);
+            var cart = await _cartService.UpdateCartItemAsync(userId, id, request);
             return Ok(cart);
         }
 

@@ -64,7 +64,7 @@ namespace Stylo.Backend.Stylo.API.Controllers
         public async Task<IActionResult> ConfirmOrder(int id)
         {
             var userId = GetUserId();
-            var order = await _orderService.ConfirmOrderAsync(userId, id);
+            var order = await _orderService.ConfirmOrderAsync(userId, IsAdmin(), id);
             return Ok(order);
         }
 
@@ -73,7 +73,7 @@ namespace Stylo.Backend.Stylo.API.Controllers
         public async Task<IActionResult> CancelOrder(int id)
         {
             var userId = GetUserId();
-            var order = await _orderService.CancelOrderAsync(userId, id);
+            var order = await _orderService.CancelOrderAsync(userId, IsAdmin(), id);
             return Ok(order);
         }
 
@@ -82,29 +82,25 @@ namespace Stylo.Backend.Stylo.API.Controllers
         public async Task<IActionResult> UpdateOrderItem(int id, int itemId, [FromBody] UpdateOrderItemRequestDto request)
         {
             var userId = GetUserId();
-            var order = await _orderService.UpdateOrderItemAsync(userId, id, itemId, request);
+            var order = await _orderService.UpdateOrderItemAsync(userId, IsAdmin(), id, itemId, request);
             return Ok(order);
         }
 
         [HttpPut("{id}/items/{itemId}/confirm")]
         [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ConfirmOrderItem(int id, int itemId, [FromBody] UpdateOrderItemRequestDto? request)
+        public async Task<IActionResult> ConfirmOrderItem(int id, int itemId)
         {
             var userId = GetUserId();
-            var dto = request ?? new UpdateOrderItemRequestDto();
-            dto.Status = OrderItemStatus.Confirmed;
-            var order = await _orderService.UpdateOrderItemAsync(userId, id, itemId, dto);
+            var order = await _orderService.ConfirmOrderItemAsync(userId, IsAdmin(), id, itemId);
             return Ok(order);
         }
 
         [HttpPut("{id}/items/{itemId}/cancel")]
         [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
-        public async Task<IActionResult> CancelOrderItem(int id, int itemId, [FromBody] UpdateOrderItemRequestDto? request)
+        public async Task<IActionResult> CancelOrderItem(int id, int itemId)
         {
             var userId = GetUserId();
-            var dto = request ?? new UpdateOrderItemRequestDto();
-            dto.Status = OrderItemStatus.Cancelled;
-            var order = await _orderService.UpdateOrderItemAsync(userId, id, itemId, dto);
+            var order = await _orderService.CancelOrderItemAsync(userId, IsAdmin(), id, itemId);
             return Ok(order);
         }
     }

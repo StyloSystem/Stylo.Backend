@@ -31,9 +31,15 @@ namespace Stylo.Backend.Stylo.Application.Services
             }
 
             var product = await _productRepository.GetByIdAsync(dto.ProductId);
-            if (product == null)
+            if (product == null || product.IsDeleted)
             {
                 throw new NotFoundException($"Product with ID {dto.ProductId} not found.");
+            }
+
+            var productSize = product.ProductSizes.FirstOrDefault(ps => ps.Size == parsedSize);
+            if (productSize == null)
+            {
+                throw new BadRequestException($"Requested size '{dto.Size}' is not available for product '{product.Name}'.", "INVALID_SIZE");
             }
 
             var cart = await _cartRepository.GetOrCreateCartByUserIdAsync(userId);
@@ -43,7 +49,7 @@ namespace Stylo.Backend.Stylo.Application.Services
             return MapToDto(updatedCart);
         }
 
-        public async Task<CartDto> UpdateCartItemQuantityAsync(int userId, int cartItemId, int quantity)
+        public async Task<CartDto> UpdateCartItemAsync(int userId, int cartItemId, UpdateCartItemRequestDto dto)
         {
             var cartItem = await _cartRepository.GetCartItemByIdAsync(cartItemId);
             if (cartItem == null || cartItem.Cart.UserId != userId)
@@ -51,18 +57,48 @@ namespace Stylo.Backend.Stylo.Application.Services
                 throw new NotFoundException($"Cart item with ID {cartItemId} not found for user.");
             }
 
-            if (quantity <= 0)
+            var product = await _productRepository.GetByIdAsync(cartItem.ProductId);
+            if (product == null || product.IsDeleted)
             {
-                await _cartRepository.RemoveCartItemAsync(cartItem);
+                throw new NotFoundException($"Product with ID {cartItem.ProductId} not found.");
             }
-            else
+
+            if (!string.IsNullOrWhiteSpace(dto.Size))
             {
-                cartItem.Quantity = quantity;
-                await _cartRepository.UpdateCartItemAsync(cartItem);
+                if (!Enum.TryParse<Stylo.Domain.Enums.Size>(dto.Size.Trim(), ignoreCase: true, out var parsedSize))
+                {
+                    throw new BadRequestException($"Invalid product size '{dto.Size}'. Allowed sizes are: S, M, L, XL, XXL.", "INVALID_SIZE");
+                }
+
+                var productSize = product.ProductSizes.FirstOrDefault(ps => ps.Size == parsedSize);
+                if (productSize == null)
+                {
+                    throw new BadRequestException($"Requested size '{dto.Size}' is not available for product '{product.Name}'.", "INVALID_SIZE");
+                }
+
+                cartItem.Size = parsedSize.ToString();
             }
+
+            if (dto.Quantity.HasValue)
+            {
+                if (dto.Quantity.Value <= 0)
+                {
+                    await _cartRepository.RemoveCartItemAsync(cartItem);
+                    var cartAfterRemove = await _cartRepository.GetOrCreateCartByUserIdAsync(userId);
+                    return MapToDto(cartAfterRemove);
+                }
+                cartItem.Quantity = dto.Quantity.Value;
+            }
+
+            await _cartRepository.UpdateCartItemAsync(cartItem);
 
             var updatedCart = await _cartRepository.GetOrCreateCartByUserIdAsync(userId);
             return MapToDto(updatedCart);
+        }
+
+        public async Task<CartDto> UpdateCartItemQuantityAsync(int userId, int cartItemId, int quantity)
+        {
+            return await UpdateCartItemAsync(userId, cartItemId, new UpdateCartItemRequestDto { Quantity = quantity });
         }
 
         public async Task<CartDto> RemoveCartItemAsync(int userId, int cartItemId)
