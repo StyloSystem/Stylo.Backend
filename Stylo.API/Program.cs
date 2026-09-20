@@ -14,7 +14,8 @@ builder.Configuration
         $"appsettings.{builder.Environment.EnvironmentName}.json",
         optional: true,
         reloadOnChange: true)
-    .AddEnvironmentVariables();
+    .AddEnvironmentVariables()
+    .AddUserSecrets(System.Reflection.Assembly.GetExecutingAssembly(), optional: true);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(

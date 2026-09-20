@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Stylo.Backend.Stylo.Application.Exceptions;
 using Stylo.Backend.Stylo.Application.Interfaces;
 using Stylo.Backend.Stylo.Application.OTP.Enums;
@@ -13,11 +14,13 @@ namespace Stylo.Backend.Stylo.Application.Services
     {
         private readonly ICacheService _cache;
         private readonly OtpSettings _settings;
+        private readonly ILogger<OtpService> _logger;
 
-        public OtpService(ICacheService cache, IOptions<OtpSettings> options)
+        public OtpService(ICacheService cache, IOptions<OtpSettings> options, ILogger<OtpService> logger)
         {
             _cache = cache;
             _settings = options.Value;
+            _logger = logger;
         }
 
         private class OtpRecord
@@ -51,6 +54,8 @@ namespace Stylo.Backend.Stylo.Application.Services
 
             await _cache.SetStringAsync(otpKey, JsonSerializer.Serialize(record), TimeSpan.FromMinutes(_settings.ExpirationMinutes), cancellationToken);
             await _cache.SetStringAsync(cooldownKey, "1", TimeSpan.FromSeconds(_settings.ResendCooldownSeconds), cancellationToken);
+
+            _logger.LogInformation("[OTP Generated] Email: {Email}, Purpose: {Purpose}, OTP: {Otp}", email, purpose, otp);
 
             return otp;
         }
