@@ -53,6 +53,7 @@ namespace Stylo.Backend.Stylo.API.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
+        [Consumes("application/json")]
         [ProducesResponseType(
             typeof(ProductDto),
             StatusCodes.Status201Created)]
@@ -81,6 +82,7 @@ namespace Stylo.Backend.Stylo.API.Controllers
 
         [HttpPut("{id:int}")]
         [Authorize(Roles = "Admin")]
+        [Consumes("application/json")]
         [ProducesResponseType(
             typeof(ProductDto),
             StatusCodes.Status200OK)]
