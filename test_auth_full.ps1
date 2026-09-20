@@ -1,5 +1,5 @@
 $baseUrl = "http://localhost:59129"
-$logFile = "C:\Users\mos18\.gemini\antigravity\brain\30a9698c-b458-4df6-950f-b1565177c859\.system_generated\tasks\task-110.log"
+$logFile = "C:\Users\mos18\.gemini\antigravity\brain\30a9698c-b458-4df6-950f-b1565177c859\.system_generated\tasks\task-163.log"
 
 $timestamp = Get-Date -Format "HHmmss"
 $testEmail = "authtest_$timestamp@stylo.com"
