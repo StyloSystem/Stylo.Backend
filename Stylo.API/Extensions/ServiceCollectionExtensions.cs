@@ -7,11 +7,13 @@ using Microsoft.OpenApi;
 using Stylo.Backend.Stylo.Application.Interfaces;
 using Stylo.Backend.Stylo.Application.Services;
 using Stylo.Backend.Stylo.Domain.Entities;
+using Stylo.Backend.Stylo.Infrastructure.Configurations;
 using Stylo.Backend.Stylo.Infrastructure.Data;
 using Stylo.Backend.Stylo.Infrastructure.Repositories;
 using Stylo.Backend.Stylo.Infrastructure.Caching;
 using Stylo.Backend.Stylo.Infrastructure.Email;
 using Stylo.Backend.Stylo.Application.Settings;
+using Stylo.Backend.Stylo.Infrastructure.Services;
 
 namespace Stylo.Backend.Stylo.API.Extensions
 {
@@ -19,6 +21,9 @@ namespace Stylo.Backend.Stylo.API.Extensions
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
+            services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
+            services.AddScoped<IImageService, CloudinaryImageService>();
+
             services.AddIdentityCore<User>(options =>
             {
                 options.Password.RequireDigit = false;
@@ -30,6 +35,9 @@ namespace Stylo.Backend.Stylo.API.Extensions
             })
             .AddRoles<IdentityRole<int>>()
             .AddEntityFrameworkStores<AppDbContext>();
+
+            services.AddSingleton<ILookupNormalizer, CaseSensitiveLookupNormalizer>();
+            services.AddSingleton<ITokenManagerService, TokenManagerService>();
 
             services.AddScoped<IUserRepository, UserRepository>();
 
@@ -90,6 +98,20 @@ namespace Stylo.Backend.Stylo.API.Extensions
                 };
                 options.Events = new JwtBearerEvents
                 {
+                    OnTokenValidated = context =>
+                    {
+                        var tokenManager = context.HttpContext.RequestServices.GetRequiredService<ITokenManagerService>();
+                        var rawHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                        if (!string.IsNullOrWhiteSpace(rawHeader) && rawHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var token = rawHeader.Substring("Bearer ".Length).Trim();
+                            if (tokenManager.IsTokenInvalidated(token))
+                            {
+                                context.Fail("Token has been revoked.");
+                            }
+                        }
+                        return Task.CompletedTask;
+                    },
                     OnAuthenticationFailed = context =>
                     {
                         Console.WriteLine($"[JWT Auth Failed]: {context.Exception.Message}");
@@ -150,5 +172,11 @@ namespace Stylo.Backend.Stylo.API.Extensions
 
             return services;
         }
+    }
+
+    public class CaseSensitiveLookupNormalizer : ILookupNormalizer
+    {
+        public string? NormalizeEmail(string? email) => email;
+        public string? NormalizeName(string? name) => name;
     }
 }

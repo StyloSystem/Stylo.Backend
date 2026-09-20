@@ -36,7 +36,9 @@ namespace Stylo.Backend.Stylo.Application.DTOs
 
     public class UpdateCartItemRequestDto
     {
+        public string? Size { get; set; }
+
         [Range(1, 1000)]
-        public int Quantity { get; set; }
+        public int? Quantity { get; set; }
     }
 }

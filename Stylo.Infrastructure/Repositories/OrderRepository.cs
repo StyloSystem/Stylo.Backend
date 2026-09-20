@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Stylo.Backend.Stylo.Application.DTOs;
+using Stylo.Backend.Stylo.Application.Exceptions;
 using Stylo.Backend.Stylo.Application.Interfaces;
 using Stylo.Backend.Stylo.Domain.Entities;
+using Stylo.Backend.Stylo.Domain.Enums;
 using Stylo.Backend.Stylo.Infrastructure.Data;
 
 namespace Stylo.Backend.Stylo.Infrastructure.Repositories
@@ -12,6 +15,123 @@ namespace Stylo.Backend.Stylo.Infrastructure.Repositories
         public OrderRepository(AppDbContext context)
         {
             _context = context;
+        }
+
+        public async Task<Order> CreateOrderFromCartTransactionAsync(int userId, CreateOrderRequestDto dto)
+        {
+            const int maxRetries = 3;
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            {
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    var cart = await _context.Carts
+                        .Include(c => c.CartItems)
+                        .FirstOrDefaultAsync(c => c.UserId == userId);
+
+                    if (cart == null || cart.CartItems == null || cart.CartItems.Count == 0)
+                    {
+                        throw new BadRequestException("Cannot create an order from an empty cart.");
+                    }
+
+                    var validCartItems = cart.CartItems.ToList();
+                    var productIds = validCartItems.Select(ci => ci.ProductId).Distinct().ToList();
+
+                    var products = await _context.Products
+                        .Include(p => p.ProductSizes)
+                        .Where(p => productIds.Contains(p.Id))
+                        .ToListAsync();
+
+                    var productSizeMap = new List<(CartItem CartItem, Product Product, ProductSize ProductSize)>();
+
+                    foreach (var ci in validCartItems)
+                    {
+                        var product = products.FirstOrDefault(p => p.Id == ci.ProductId);
+                        if (product == null || product.IsDeleted)
+                        {
+                            throw new BadRequestException($"Product with ID {ci.ProductId} is no longer available.");
+                        }
+
+                        if (!Enum.TryParse<Size>(ci.Size, true, out var sizeEnum))
+                        {
+                            throw new BadRequestException($"Invalid size '{ci.Size}' for product '{product.Name}'.", "INVALID_SIZE");
+                        }
+
+                        var productSize = product.ProductSizes.FirstOrDefault(ps => ps.Size == sizeEnum);
+                        int stock = productSize?.Stock ?? 0;
+
+                        if (ci.Quantity > stock)
+                        {
+                            throw new BadRequestException(
+                                $"Requested quantity ({ci.Quantity}) for product '{product.Name}' (Size: {ci.Size}) is greater than available stock ({stock}).",
+                                "INSUFFICIENT_STOCK");
+                        }
+
+                        if (productSize == null)
+                        {
+                            throw new BadRequestException(
+                                $"Requested size '{ci.Size}' is not available for product '{product.Name}'.",
+                                "INSUFFICIENT_STOCK");
+                        }
+
+                        productSizeMap.Add((ci, product, productSize));
+                    }
+
+                    foreach (var item in productSizeMap)
+                    {
+                        item.ProductSize.Stock -= item.CartItem.Quantity;
+                    }
+
+                    var orderItems = productSizeMap.Select(item => new OrderItem
+                    {
+                        ProductId = item.CartItem.ProductId,
+                        Size = item.CartItem.Size,
+                        Quantity = item.CartItem.Quantity,
+                        UnitPriceAtPurchase = item.Product.Price,
+                        Status = OrderItemStatus.Pending
+                    }).ToList();
+
+                    var totalPrice = orderItems.Sum(oi => oi.UnitPriceAtPurchase * oi.Quantity);
+
+                    var order = new Order
+                    {
+                        UserId = userId,
+                        RecipientName = dto.RecipientName,
+                        ContactPhone = dto.ContactPhone,
+                        ShippingAddress = dto.ShippingAddress,
+                        PaymentMethod = dto.PaymentMethod,
+                        Status = OrderStatus.Pending,
+                        TotalPrice = totalPrice,
+                        CreatedAt = DateTime.UtcNow,
+                        OrderItems = orderItems
+                    };
+
+                    _context.Orders.Add(order);
+                    _context.CartItems.RemoveRange(cart.CartItems);
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return await GetOrderByIdAsync(order.Id) ?? order;
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    await transaction.RollbackAsync();
+                    _context.ChangeTracker.Clear();
+                    if (attempt == maxRetries)
+                    {
+                        throw new ConflictException("The product stock was updated concurrently by another transaction. Please try again.", "CONCURRENCY_CONFLICT");
+                    }
+                    await Task.Delay(50 * attempt);
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+
+            throw new ConflictException("Checkout failed due to concurrent stock updates. Please try again.", "CONCURRENCY_CONFLICT");
         }
 
         public async Task<Order> CreateOrderAsync(Order order)

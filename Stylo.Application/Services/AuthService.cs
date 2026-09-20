@@ -275,5 +275,38 @@ namespace Stylo.Backend.Stylo.Application.Services
             // Invalidate the token so it can't be reused.
             await _cacheService.RemoveAsync(tokenKey);
         }
+
+        public async Task LogoutAsync(int userId, string token)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                throw new NotFoundException("User Not Authenticated");
+            }
+
+            DateTime expiration = DateTime.UtcNow.AddHours(24);
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                try
+                {
+                    var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                    if (handler.CanReadToken(token))
+                    {
+                        var jwtToken = handler.ReadJwtToken(token);
+                        if (jwtToken.ValidTo != DateTime.MinValue)
+                        {
+                            expiration = jwtToken.ValidTo;
+                        }
+                    }
+                }
+                catch
+                {
+                    // Fallback to default expiration
+                }
+
+                _tokenManagerService.InvalidateToken(token, expiration);
+            }
+        }
+        }
     }
 }
