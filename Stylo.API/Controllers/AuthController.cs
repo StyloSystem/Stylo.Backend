@@ -18,13 +18,24 @@ namespace Stylo.Backend.Stylo.API.Controllers
             _authService = authService;
         }
 
-        [HttpPost("register")]
+        [HttpPost("register/request")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status429TooManyRequests)]
+        public async Task<IActionResult> RequestRegisterOtp([FromBody] RegisterRequestDto request)
+        {
+            await _authService.RequestRegisterOtpAsync(request);
+            return Ok(new { message = "A verification code has been sent to your email." });
+        }
+
+        [HttpPost("register/verify")]
         [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status409Conflict)]
-        public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
+        public async Task<IActionResult> VerifyRegisterOtp([FromBody] VerifyRegisterOtpDto request)
         {
-            var result = await _authService.RegisterAsync(request);
+            var result = await _authService.VerifyRegisterOtpAsync(request);
             return Ok(result);
         }
 

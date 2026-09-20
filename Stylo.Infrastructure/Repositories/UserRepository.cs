@@ -61,6 +61,27 @@ namespace Stylo.Backend.Stylo.Infrastructure.Repositories
             return true;
         }
 
+        public async Task<bool> CreateUserWithHashedPasswordAsync(User user)
+        {
+            user.UserName = user.Email;
+            if (user.Email != null)
+            {
+                user.NormalizedEmail = user.Email.ToUpperInvariant();
+                user.NormalizedUserName = user.Email.ToUpperInvariant();
+            }
+            user.SecurityStamp = Guid.NewGuid().ToString();
+            user.ConcurrencyStamp = Guid.NewGuid().ToString();
+
+            var result = await _userManager.CreateAsync(user);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+                throw new BadRequestException($"User creation failed: {errors}");
+            }
+
+            return true;
+        }
+
         public async Task<bool> UpdateUserAsync(User user)
         {
             var result = await _userManager.UpdateAsync(user);
