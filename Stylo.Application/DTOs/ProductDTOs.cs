@@ -138,6 +138,8 @@ namespace Stylo.Backend.Stylo.Application.DTOs
         [JsonPropertyName("imagePublicId")]
         public string? ImagePublicId { get; set; }
 
+        public IFormFile? Image { get; set; }
+
         [Required(ErrorMessage = "Gender is required.")]
         [JsonPropertyName("gender")]
         public string Gender { get; set; } = string.Empty;

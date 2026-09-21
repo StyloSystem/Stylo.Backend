@@ -105,7 +105,7 @@ namespace Stylo.Backend.Stylo.API.Controllers
         /// </summary>
         [HttpPut("{id:int}")]
         [Authorize(Roles = "Admin")]
-        [Consumes("application/json")]
+        [Consumes("multipart/form-data")]
         [ProducesResponseType(
             typeof(ProductDto),
             StatusCodes.Status200OK)]
@@ -123,7 +123,7 @@ namespace Stylo.Backend.Stylo.API.Controllers
             StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Update(
             int id,
-            [FromBody] UpdateProductDto dto)
+            [FromForm] UpdateProductDto dto)
         {
             var product = await _productService.UpdateAsync(id, dto);
 

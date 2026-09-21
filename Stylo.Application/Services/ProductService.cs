@@ -232,7 +232,18 @@ namespace Stylo.Backend.Stylo.Application.Services
             string? newPublicIdToCleanupOnFailure = null;
             string? oldPublicIdToDelete = null;
 
-            if (!string.IsNullOrWhiteSpace(dto.ImagePublicId) &&
+            if (dto.Image != null && dto.Image.Length > 0)
+            {
+                var uploadResult =
+                    await _imageService.UploadImageAsync(dto.Image);
+
+                newPublicIdToCleanupOnFailure = uploadResult.PublicId;
+                oldPublicIdToDelete = product.ImagePublicId;
+
+                product.ImageUrl = uploadResult.SecureUrl;
+                product.ImagePublicId = uploadResult.PublicId;
+            }
+            else if (!string.IsNullOrWhiteSpace(dto.ImagePublicId) &&
                 dto.ImagePublicId != product.ImagePublicId)
             {
                 newPublicIdToCleanupOnFailure = dto.ImagePublicId;
