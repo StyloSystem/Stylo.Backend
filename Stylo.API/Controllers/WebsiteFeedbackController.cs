@@ -85,5 +85,27 @@ namespace Stylo.Backend.Stylo.API.Controllers
             await _feedbackService.MarkAsFeaturedAsync(id);
             return Ok(new { success = true, message = "Feedback marked as featured" });
         }
+
+
+        /// <summary>
+        /// Removes website feedback from the featured reviews shown on the home page.
+        /// Admin access is required.
+        /// </summary>
+        [HttpPut("admin/feedback/{id}/unfeature")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Unfeature(int id)
+        {
+            await _feedbackService.UnfeatureAsync(id);
+
+            return Ok(new
+            {
+                success = true,
+                message = "Feedback removed from featured reviews"
+            });
+        }
     }
 }

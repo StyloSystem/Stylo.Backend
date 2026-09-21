@@ -8,5 +8,7 @@ namespace Stylo.Backend.Stylo.Application.Interfaces
         Task<IEnumerable<WebsiteFeedbackAdminDto>> GetAllAsync();
         Task AddFeedbackAsync(int userId, CreateWebsiteFeedbackDto dto);
         Task MarkAsFeaturedAsync(int id);
+
+        Task UnfeatureAsync(int id);
     }
 }
