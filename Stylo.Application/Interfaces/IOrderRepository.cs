@@ -11,6 +11,7 @@ namespace Stylo.Backend.Stylo.Application.Interfaces
         Task<Order?> GetOrderByIdAsync(int orderId);
         Task<List<Order>> GetAllOrdersAsync();
         Task UpdateOrderAsync(Order order);
+        Task<Order> CancelOrderTransactionAsync(int userId, bool isAdmin, int orderId);
         Task<OrderItem?> GetOrderItemByIdAsync(int orderItemId);
         Task UpdateOrderItemAsync(OrderItem orderItem);
     }

@@ -104,19 +104,6 @@ namespace Stylo.Backend.Stylo.Application.Services
                     "CATEGORY_NOT_FOUND");
             }
 
-            if (!string.IsNullOrWhiteSpace(dto.Size) &&
-                (dto.Sizes == null || !dto.Sizes.Any()))
-            {
-                dto.Sizes = new List<CreateProductSizeDto>
-                {
-                    new CreateProductSizeDto
-                    {
-                        Size = dto.Size,
-                        Stock = dto.Stock ?? 0
-                    }
-                };
-            }
-
             string? imageUrl =
                 string.IsNullOrWhiteSpace(dto.ImageUrl)
                     ? null
@@ -263,19 +250,6 @@ namespace Stylo.Backend.Stylo.Application.Services
                      string.IsNullOrWhiteSpace(dto.ImagePublicId))
             {
                 product.ImageUrl = dto.ImageUrl.Trim();
-            }
-
-            if (!string.IsNullOrWhiteSpace(dto.Size) &&
-                (dto.Sizes == null || !dto.Sizes.Any()))
-            {
-                dto.Sizes = new List<CreateProductSizeDto>
-                {
-                    new CreateProductSizeDto
-                    {
-                        Size = dto.Size,
-                        Stock = dto.Stock ?? 0
-                    }
-                };
             }
 
             UpdateProductSizes(product, dto.Sizes);

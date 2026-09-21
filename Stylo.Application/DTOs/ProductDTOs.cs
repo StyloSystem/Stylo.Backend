@@ -110,9 +110,6 @@ namespace Stylo.Backend.Stylo.Application.DTOs
         [JsonPropertyName("categoryId")]
         public int CategoryId { get; set; }
 
-        [JsonPropertyName("size")]
-        public string? Size { get; set; }
-
         [JsonPropertyName("stock")]
         public int? Stock { get; set; }
 
@@ -148,9 +145,6 @@ namespace Stylo.Backend.Stylo.Application.DTOs
         [Range(1, int.MaxValue, ErrorMessage = "Valid Category ID is required.")]
         [JsonPropertyName("categoryId")]
         public int CategoryId { get; set; }
-
-        [JsonPropertyName("size")]
-        public string? Size { get; set; }
 
         [JsonPropertyName("stock")]
         public int? Stock { get; set; }
