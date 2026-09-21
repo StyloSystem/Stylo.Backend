@@ -4,29 +4,6 @@ Backend service for Stylo built with **ASP.NET Core (.NET 10)** and structured a
 
 ---
 
-## 🏗 Project Structure
-
-The solution is organized into four core layers ....
-
-```text
-Stylo.Backend/
-│
-├── Stylo.API/               # Presentation Layer (Controllers, Startup, Configurations)
-│   ├── Controllers/
-│   ├── Properties/
-│   ├── Program.cs
-│   ├── appsettings.json
-│   └── Stylo.Backend.http
-│
-├── Stylo.Application/       # Application Layer (Business rules, Use Cases, Interfaces)
-│
-├── Stylo.Domain/            # Domain Layer (Core Entities, Value Objects)
-│
-└── Stylo.Infrastructure/    # Infrastructure Layer (Data access, External Services)
-```
-
----
-
 ## 🚀 Getting Started
 
 ### Prerequisites
