@@ -24,6 +24,10 @@ namespace Stylo.Backend.Stylo.Application.Interfaces
 
         Task<bool> HasProductFeedbacksAsync(int productId);
 
+        Task<bool> HasPurchasedProductIdsAsync(
+            int? userId,
+            int productId);
+
         Task AddAsync(Product product);
 
         Task UpdateAsync(Product product);

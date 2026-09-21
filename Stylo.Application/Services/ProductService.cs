@@ -3,6 +3,7 @@ using Stylo.Backend.Stylo.Application.Exceptions;
 using Stylo.Backend.Stylo.Application.Interfaces;
 using Stylo.Backend.Stylo.Domain.Entities;
 using Stylo.Backend.Stylo.Domain.Enums;
+using System.Security.Claims;
 
 namespace Stylo.Backend.Stylo.Application.Services
 {
@@ -10,13 +11,16 @@ namespace Stylo.Backend.Stylo.Application.Services
     {
         private readonly IProductRepository _productRepository;
         private readonly IImageService _imageService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public ProductService(
             IProductRepository productRepository,
-            IImageService imageService)
+            IImageService imageService,
+            IHttpContextAccessor httpContextAccessor)
         {
             _productRepository = productRepository;
             _imageService = imageService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<ProductListDto> GetAllAsync(
@@ -41,9 +45,16 @@ namespace Stylo.Backend.Stylo.Application.Services
                 categoryId,
                 gender);
 
+            var items = new List<ProductDto>();
+
+            foreach (var product in products)
+            {
+                items.Add(await ToDto(product));
+            }
+
             return new ProductListDto
             {
-                Items = products.Select(ToDto).ToList(),
+                Items = items,
                 TotalCount = totalCount,
                 Page = page,
                 PageSize = pageSize
@@ -61,7 +72,7 @@ namespace Stylo.Backend.Stylo.Application.Services
                     "PRODUCT_NOT_FOUND");
             }
 
-            return ToDto(product);
+            return await ToDto(product);
         }
 
         public async Task<ProductDto> CreateAsync(CreateProductDto dto)
@@ -93,7 +104,8 @@ namespace Stylo.Backend.Stylo.Application.Services
                     "CATEGORY_NOT_FOUND");
             }
 
-            if (!string.IsNullOrWhiteSpace(dto.Size) && (dto.Sizes == null || !dto.Sizes.Any()))
+            if (!string.IsNullOrWhiteSpace(dto.Size) &&
+                (dto.Sizes == null || !dto.Sizes.Any()))
             {
                 dto.Sizes = new List<CreateProductSizeDto>
                 {
@@ -105,12 +117,21 @@ namespace Stylo.Backend.Stylo.Application.Services
                 };
             }
 
-            string? imageUrl = string.IsNullOrWhiteSpace(dto.ImageUrl) ? null : dto.ImageUrl.Trim();
-            string? imagePublicId = string.IsNullOrWhiteSpace(dto.ImagePublicId) ? null : dto.ImagePublicId.Trim();
+            string? imageUrl =
+                string.IsNullOrWhiteSpace(dto.ImageUrl)
+                    ? null
+                    : dto.ImageUrl.Trim();
+
+            string? imagePublicId =
+                string.IsNullOrWhiteSpace(dto.ImagePublicId)
+                    ? null
+                    : dto.ImagePublicId.Trim();
 
             if (dto.Image != null && dto.Image.Length > 0)
             {
-                var uploadResult = await _imageService.UploadImageAsync(dto.Image);
+                var uploadResult =
+                    await _imageService.UploadImageAsync(dto.Image);
+
                 imageUrl = uploadResult.SecureUrl;
                 imagePublicId = uploadResult.PublicId;
             }
@@ -118,12 +139,16 @@ namespace Stylo.Backend.Stylo.Application.Services
             var product = new Product
             {
                 Name = dto.Name.Trim(),
+
                 Description = string.IsNullOrWhiteSpace(dto.Description)
                     ? null
                     : dto.Description.Trim(),
+
                 Price = dto.Price,
+
                 ImageUrl = imageUrl,
                 ImagePublicId = imagePublicId,
+
                 Gender = gender,
                 CategoryId = dto.CategoryId
             };
@@ -140,10 +165,12 @@ namespace Stylo.Backend.Stylo.Application.Services
                 {
                     await _imageService.DeleteImageAsync(imagePublicId);
                 }
+
                 throw;
             }
 
-            var createdProduct = await _productRepository.GetByIdAsync(product.Id);
+            var createdProduct =
+                await _productRepository.GetByIdAsync(product.Id);
 
             if (createdProduct == null)
             {
@@ -151,12 +178,13 @@ namespace Stylo.Backend.Stylo.Application.Services
                 {
                     await _imageService.DeleteImageAsync(imagePublicId);
                 }
+
                 throw new NotFoundException(
                     "Product could not be retrieved after creation.",
                     "PRODUCT_NOT_FOUND");
             }
 
-            return ToDto(createdProduct);
+            return await ToDto(createdProduct);
         }
 
         public async Task<ProductDto> UpdateAsync(
@@ -165,15 +193,18 @@ namespace Stylo.Backend.Stylo.Application.Services
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.Name))
             {
-                throw new BadRequestException("Product name is required.");
+                throw new BadRequestException(
+                    "Product name is required.");
             }
 
             if (string.IsNullOrWhiteSpace(dto.Gender))
             {
-                throw new BadRequestException("Gender is required.");
+                throw new BadRequestException(
+                    "Gender is required.");
             }
 
-            var product = await _productRepository.GetByIdAsync(id);
+            var product =
+                await _productRepository.GetByIdAsync(id);
 
             if (product == null || product.IsDeleted)
             {
@@ -192,7 +223,8 @@ namespace Stylo.Backend.Stylo.Application.Services
                     "INVALID_GENDER");
             }
 
-            if (!await _productRepository.CategoryExistsAsync(dto.CategoryId))
+            if (!await _productRepository.CategoryExistsAsync(
+                    dto.CategoryId))
             {
                 throw new NotFoundException(
                     "Category not found.",
@@ -201,9 +233,10 @@ namespace Stylo.Backend.Stylo.Application.Services
 
             product.Name = dto.Name.Trim();
 
-            product.Description = string.IsNullOrWhiteSpace(dto.Description)
-                ? null
-                : dto.Description.Trim();
+            product.Description =
+                string.IsNullOrWhiteSpace(dto.Description)
+                    ? null
+                    : dto.Description.Trim();
 
             product.Price = dto.Price;
             product.Gender = gender;
@@ -212,22 +245,28 @@ namespace Stylo.Backend.Stylo.Application.Services
             string? newPublicIdToCleanupOnFailure = null;
             string? oldPublicIdToDelete = null;
 
-            if (!string.IsNullOrWhiteSpace(dto.ImagePublicId) && dto.ImagePublicId != product.ImagePublicId)
+            if (!string.IsNullOrWhiteSpace(dto.ImagePublicId) &&
+                dto.ImagePublicId != product.ImagePublicId)
             {
                 newPublicIdToCleanupOnFailure = dto.ImagePublicId;
                 oldPublicIdToDelete = product.ImagePublicId;
 
-                product.ImageUrl = string.IsNullOrWhiteSpace(dto.ImageUrl)
-                    ? null
-                    : dto.ImageUrl.Trim();
-                product.ImagePublicId = dto.ImagePublicId.Trim();
+                product.ImageUrl =
+                    string.IsNullOrWhiteSpace(dto.ImageUrl)
+                        ? null
+                        : dto.ImageUrl.Trim();
+
+                product.ImagePublicId =
+                    dto.ImagePublicId.Trim();
             }
-            else if (!string.IsNullOrWhiteSpace(dto.ImageUrl) && string.IsNullOrWhiteSpace(dto.ImagePublicId))
+            else if (!string.IsNullOrWhiteSpace(dto.ImageUrl) &&
+                     string.IsNullOrWhiteSpace(dto.ImagePublicId))
             {
                 product.ImageUrl = dto.ImageUrl.Trim();
             }
 
-            if (!string.IsNullOrWhiteSpace(dto.Size) && (dto.Sizes == null || !dto.Sizes.Any()))
+            if (!string.IsNullOrWhiteSpace(dto.Size) &&
+                (dto.Sizes == null || !dto.Sizes.Any()))
             {
                 dto.Sizes = new List<CreateProductSizeDto>
                 {
@@ -247,25 +286,31 @@ namespace Stylo.Backend.Stylo.Application.Services
             }
             catch
             {
-                if (!string.IsNullOrWhiteSpace(newPublicIdToCleanupOnFailure))
+                if (!string.IsNullOrWhiteSpace(
+                        newPublicIdToCleanupOnFailure))
                 {
-                    await _imageService.DeleteImageAsync(newPublicIdToCleanupOnFailure);
+                    await _imageService.DeleteImageAsync(
+                        newPublicIdToCleanupOnFailure);
                 }
+
                 throw;
             }
 
-            if (!string.IsNullOrWhiteSpace(oldPublicIdToDelete) && oldPublicIdToDelete != product.ImagePublicId)
+            if (!string.IsNullOrWhiteSpace(oldPublicIdToDelete) &&
+                oldPublicIdToDelete != product.ImagePublicId)
             {
                 try
                 {
-                    await _imageService.DeleteImageAsync(oldPublicIdToDelete);
+                    await _imageService.DeleteImageAsync(
+                        oldPublicIdToDelete);
                 }
                 catch
                 {
                 }
             }
 
-            var updatedProduct = await _productRepository.GetByIdAsync(id);
+            var updatedProduct =
+                await _productRepository.GetByIdAsync(id);
 
             if (updatedProduct == null)
             {
@@ -274,12 +319,13 @@ namespace Stylo.Backend.Stylo.Application.Services
                     "PRODUCT_NOT_FOUND");
             }
 
-            return ToDto(updatedProduct);
+            return await ToDto(updatedProduct);
         }
 
         public async Task DeleteAsync(int id)
         {
-            var product = await _productRepository.GetByIdAsync(id);
+            var product =
+                await _productRepository.GetByIdAsync(id);
 
             if (product == null)
             {
@@ -297,14 +343,17 @@ namespace Stylo.Backend.Stylo.Application.Services
         {
             if (sizeDtos == null || !sizeDtos.Any())
             {
-                throw new BadRequestException("At least one product size and stock is required.", "INVALID_SIZE");
+                throw new BadRequestException(
+                    "At least one product size and stock is required.",
+                    "INVALID_SIZE");
             }
 
             var existingSizes = new HashSet<Size>();
 
             foreach (var sizeDto in sizeDtos)
             {
-                if (sizeDto == null || string.IsNullOrWhiteSpace(sizeDto.Size))
+                if (sizeDto == null ||
+                    string.IsNullOrWhiteSpace(sizeDto.Size))
                 {
                     throw new BadRequestException(
                         "Size is required.",
@@ -346,7 +395,8 @@ namespace Stylo.Backend.Stylo.Application.Services
 
                 foreach (var sizeDto in sizeDtos)
                 {
-                    if (sizeDto == null || string.IsNullOrWhiteSpace(sizeDto.Size))
+                    if (sizeDto == null ||
+                        string.IsNullOrWhiteSpace(sizeDto.Size))
                     {
                         throw new BadRequestException(
                             "Size is required.",
@@ -391,13 +441,36 @@ namespace Stylo.Backend.Stylo.Application.Services
 
             if (!product.ProductSizes.Any())
             {
-                throw new BadRequestException("At least one product size and stock is required.", "INVALID_SIZE");
+                throw new BadRequestException(
+                    "At least one product size and stock is required.",
+                    "INVALID_SIZE");
             }
         }
 
-        private static ProductDto ToDto(Product product)
+        private int? GetCurrentUserId()
         {
-            var firstSize = product.ProductSizes.FirstOrDefault();
+            var userIdValue = _httpContextAccessor
+                .HttpContext?
+                .User?
+                .FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (int.TryParse(userIdValue, out var userId))
+            {
+                return userId;
+            }
+
+            return null;
+        }
+
+        private async Task<ProductDto> ToDto(Product product)
+        {
+            var firstSize =
+                product.ProductSizes.FirstOrDefault();
+
+            var hasPurchased =
+                await _productRepository.HasPurchasedProductIdsAsync(
+                    GetCurrentUserId(),
+                    product.Id);
 
             return new ProductDto
             {
@@ -408,8 +481,11 @@ namespace Stylo.Backend.Stylo.Application.Services
                 ImageUrl = product.ImageUrl,
                 ImagePublicId = product.ImagePublicId,
                 Gender = product.Gender.ToString(),
+
                 Size = firstSize?.Size.ToString(),
                 Stock = firstSize?.Stock ?? 0,
+
+                HasPurchased = hasPurchased,
 
                 Category = new ProductCategoryDto
                 {
