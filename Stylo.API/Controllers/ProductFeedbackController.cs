@@ -7,17 +7,27 @@ using Stylo.Backend.Stylo.Application.Interfaces;
 
 namespace Stylo.Backend.Stylo.API.Controllers
 {
+    /// <summary>
+    /// Provides endpoints for managing product reviews, customer feedback, and featured reviews.
+    /// </summary>
     [ApiController]
     [Route("api")]
     public class ProductFeedbackController : ControllerBase
     {
         private readonly IProductFeedbackService _feedbackService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProductFeedbackController"/> class.
+        /// </summary>
+        /// <param name="feedbackService">The service used to handle product feedback operations.</param>
         public ProductFeedbackController(IProductFeedbackService feedbackService)
         {
             _feedbackService = feedbackService;
         }
 
+        /// <summary>
+        /// Submits feedback for a product. Authentication is required.
+        /// </summary>
         [HttpPost("products/{productId}/feedback")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -30,6 +40,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(new { success = true, message = "Feedback submitted successfully" });
         }
 
+        /// <summary>
+        /// Returns all feedback submitted for a specific product.
+        /// </summary>
         [HttpGet("products/{productId}/feedback")]
         [ProducesResponseType(typeof(IEnumerable<ProductFeedbackDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetProductFeedback(int productId)
@@ -38,6 +51,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(feedbacks);
         }
 
+        /// <summary>
+        /// Returns all product feedback for administration.
+        /// </summary>
         [HttpGet("admin/product-feedback")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(IEnumerable<ProductFeedbackAdminDto>), StatusCodes.Status200OK)]
@@ -49,6 +65,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(feedbacks);
         }
 
+        /// <summary>
+        /// Marks a product feedback as featured. Admin access is required.
+        /// </summary>
         [HttpPut("admin/product-feedback/{id}/feature")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -59,6 +78,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(new { success = true, message = "Feedback marked as featured" });
         }
 
+        /// <summary>
+        /// Returns all featured product feedback.
+        /// </summary>
         [HttpGet("products/reviews/featured")]
         [ProducesResponseType(typeof(IEnumerable<FeaturedProductFeedbackDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetFeaturedReviews()

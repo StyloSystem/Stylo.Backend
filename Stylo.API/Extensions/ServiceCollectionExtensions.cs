@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using System.Reflection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -135,6 +136,9 @@ namespace Stylo.Backend.Stylo.API.Extensions
                     Version = "v1",
                     Description = "E-Commerce Backend API for Stylo Clothing Store"
                 });
+
+                // Include XML documentation from controllers and models
+                options.IncludeXmlComments(Assembly.GetExecutingAssembly());
 
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {

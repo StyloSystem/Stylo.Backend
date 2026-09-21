@@ -6,18 +6,27 @@ using Stylo.Backend.Stylo.Application.Exceptions;
 using Stylo.Backend.Stylo.Application.Interfaces;
 
 namespace Stylo.Backend.Stylo.API.Controllers
-{
+{    /// <summary>
+     /// Provides endpoints for user authentication, registration, OTP verification, and password management.
+     /// </summary>
     [ApiController]
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AuthController"/> class.
+        /// </summary>
+        /// <param name="authService">The service used to handle user authentication and account actions.</param>
         public AuthController(IAuthService authService)
         {
             _authService = authService;
         }
 
+        /// <summary>
+        /// Sends a verification OTP to the user's email to start the registration process.
+        /// </summary>
         [HttpPost("register/request")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
@@ -29,6 +38,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(new { message = "A verification code has been sent to your email." });
         }
 
+        /// <summary>
+        /// Verifies the registration OTP and creates the user account.
+        /// </summary>
         [HttpPost("register/verify")]
         [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
@@ -39,6 +51,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Sends a password reset OTP if the email is registered.
+        /// </summary>
         [HttpPost("forgot-password")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
@@ -50,6 +65,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(new { message = "If this email is registered, a reset code has been sent." });
         }
 
+        /// <summary>
+        /// Verifies the password reset OTP and returns a reset token.
+        /// </summary>
         [HttpPost("verify-reset-otp")]
         [ProducesResponseType(typeof(ResetTokenResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
@@ -59,6 +77,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Resets the user's password using the reset token.
+        /// </summary>
         [HttpPost("reset-password")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
@@ -69,6 +90,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(new { message = "Password has been reset successfully." });
         }
 
+        /// <summary>
+        /// Authenticates the user and returns an access token.
+        /// </summary>
         [HttpPost("login")]
         [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
@@ -79,6 +103,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Returns the profile of the currently authenticated user.
+        /// </summary>
         [Authorize]
         [HttpGet("me")]
         [ProducesResponseType(typeof(UserProfileDto), StatusCodes.Status200OK)]
@@ -95,6 +122,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Logs out the currently authenticated user and invalidates the current token.
+        /// </summary>
         [Authorize]
         [HttpPost("logout")]
         [ProducesResponseType(StatusCodes.Status200OK)]

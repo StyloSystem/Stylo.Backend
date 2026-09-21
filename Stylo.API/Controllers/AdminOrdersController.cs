@@ -6,6 +6,9 @@ using Stylo.Backend.Stylo.Application.Interfaces;
 
 namespace Stylo.Backend.Stylo.API.Controllers
 {
+    /// <summary>
+    /// Provides administrative endpoints for managing and inspecting all customer orders.
+    /// </summary>
     [ApiController]
     [Route("api/admin/orders")]
     [Authorize(Roles = "Admin")]
@@ -13,11 +16,18 @@ namespace Stylo.Backend.Stylo.API.Controllers
     {
         private readonly IOrderService _orderService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AdminOrdersController"/> class.
+        /// </summary>
+        /// <param name="orderService">The service used to handle admin order management operations.</param>
         public AdminOrdersController(IOrderService orderService)
         {
             _orderService = orderService;
         }
 
+        /// <summary>
+        /// Returns all orders for the admin.
+        /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(List<OrderDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllOrders()
@@ -26,27 +36,5 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(orders);
         }
 
-        private int GetUserId()
-        {
-            var userIdClaim = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-            int.TryParse(userIdClaim, out var userId);
-            return userId;
-        }
-
-        [HttpPut("{id}/confirm")]
-        [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ConfirmOrder(int id)
-        {
-            var order = await _orderService.ConfirmOrderAsync(GetUserId(), true, id);
-            return Ok(order);
-        }
-
-        [HttpPut("{id}/cancel")]
-        [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
-        public async Task<IActionResult> CancelOrder(int id)
-        {
-            var order = await _orderService.CancelOrderAsync(GetUserId(), true, id);
-            return Ok(order);
-        }
     }
 }

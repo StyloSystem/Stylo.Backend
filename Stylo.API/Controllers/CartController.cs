@@ -7,6 +7,9 @@ using Stylo.Backend.Stylo.Application.Interfaces;
 
 namespace Stylo.Backend.Stylo.API.Controllers
 {
+    /// <summary>
+    /// Provides endpoints for managing user shopping cart items and cart state.
+    /// </summary>
     [ApiController]
     [Route("api/cart")]
     [Authorize]
@@ -14,6 +17,10 @@ namespace Stylo.Backend.Stylo.API.Controllers
     {
         private readonly ICartService _cartService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CartController"/> class.
+        /// </summary>
+        /// <param name="cartService">The service used to handle shopping cart operations.</param>
         public CartController(ICartService cartService)
         {
             _cartService = cartService;
@@ -29,6 +36,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return userId;
         }
 
+        /// <summary>
+        /// Returns the authenticated user's shopping cart.
+        /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(CartDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetCart()
@@ -38,6 +48,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(cart);
         }
 
+        /// <summary>
+        /// Adds a product to the authenticated user's shopping cart.
+        /// </summary>
         [HttpPost("items")]
         [ProducesResponseType(typeof(CartDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> AddItem([FromBody] AddToCartRequestDto request)
@@ -47,6 +60,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(cart);
         }
 
+        /// <summary>
+        /// Updates the quantity of an item in the authenticated user's cart.
+        /// </summary>
         [HttpPut("items/{id}")]
         [ProducesResponseType(typeof(CartDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateCartItem(int id, [FromBody] UpdateCartItemRequestDto request)
@@ -56,6 +72,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(cart);
         }
 
+        /// <summary>
+        /// Removes an item from the authenticated user's shopping cart.
+        /// </summary>
         [HttpDelete("items/{id}")]
         [ProducesResponseType(typeof(CartDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> RemoveItem(int id)
@@ -65,6 +84,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(cart);
         }
 
+        /// <summary>
+        /// Removes all items from the authenticated user's shopping cart.
+        /// </summary>
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> ClearCart()

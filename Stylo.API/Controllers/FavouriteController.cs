@@ -7,6 +7,9 @@ using Stylo.Backend.Stylo.Application.Interfaces;
 
 namespace Stylo.Backend.Stylo.API.Controllers
 {
+    /// <summary>
+    /// Provides endpoints for managing user favorite products and wishlist items.
+    /// </summary>
     [ApiController]
     [Route("api/favourites")]
     [Authorize]
@@ -14,11 +17,18 @@ namespace Stylo.Backend.Stylo.API.Controllers
     {
         private readonly IFavoriteService _favoriteService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FavouriteController"/> class.
+        /// </summary>
+        /// <param name="favoriteService">The service used to handle favorite products operations.</param>
         public FavouriteController(IFavoriteService favoriteService)
         {
             _favoriteService = favoriteService;
         }
 
+        /// <summary>
+        /// Returns all favourite products of the authenticated user.
+        /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<FavoriteDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status401Unauthorized)]
@@ -29,6 +39,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(favourites);
         }
 
+        /// <summary>
+        /// Adds a product to the authenticated user's favourites.
+        /// </summary>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
@@ -40,6 +53,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(new { success = true, message = "Product added to favourites" });
         }
 
+        /// <summary>
+        /// Removes a product from the authenticated user's favourites.
+        /// </summary>
         [HttpDelete("{productId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status401Unauthorized)]
