@@ -5,17 +5,31 @@ using Stylo.Backend.Stylo.Application.Interfaces;
 
 namespace Stylo.Backend.Stylo.API.Controllers
 {
+    /// <summary>
+    /// Provides endpoints for browsing, creating, updating, and deleting products.
+    /// </summary>
     [ApiController]
     [Route("api/products")]
     public class ProductsController : ControllerBase
     {
         private readonly IProductService _productService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProductsController"/> class.
+        /// </summary>
+        /// <param name="productService">The service used to handle product inventory operations.</param>
         public ProductsController(IProductService productService)
         {
             _productService = productService;
         }
 
+        /// <summary>
+        /// Returns a paginated list of products.
+        /// </summary>
+        /// <param name="page">The page number. Starts from 1.</param>
+        /// <param name="pageSize">The number of products returned per page.</param>
+        /// <param name="categoryId">Optional category filter.</param>
+        /// <param name="gender">Optional gender filter.</param>
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType(
@@ -36,6 +50,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(products);
         }
 
+        /// <summary>
+        /// Returns a product by its ID.
+        /// </summary>
         [HttpGet("{id:int}")]
         [AllowAnonymous]
         [ProducesResponseType(
@@ -51,6 +68,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(product);
         }
 
+        /// <summary>
+        /// Creates a new product with an image. Admin access is required.
+        /// </summary>
         [HttpPost]
         [Authorize(Roles = "Admin")]
         [Consumes("multipart/form-data")]
@@ -80,6 +100,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
                 product);
         }
 
+        /// <summary>
+        /// Updates an existing product. Admin access is required.
+        /// </summary>
         [HttpPut("{id:int}")]
         [Authorize(Roles = "Admin")]
         [Consumes("application/json")]
@@ -107,6 +130,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(product);
         }
 
+        /// <summary>
+        /// Deletes a product. Admin access is required.
+        /// </summary>
         [HttpDelete("{id:int}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

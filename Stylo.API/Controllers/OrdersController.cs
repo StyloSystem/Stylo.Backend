@@ -8,6 +8,9 @@ using Stylo.Backend.Stylo.Domain.Enums;
 
 namespace Stylo.Backend.Stylo.API.Controllers
 {
+    /// <summary>
+    /// Provides endpoints for placing, tracking, confirming, and canceling customer orders.
+    /// </summary>
     [ApiController]
     [Route("api/orders")]
     [Authorize]
@@ -15,6 +18,10 @@ namespace Stylo.Backend.Stylo.API.Controllers
     {
         private readonly IOrderService _orderService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OrdersController"/> class.
+        /// </summary>
+        /// <param name="orderService">The service used to handle order processing and retrieval.</param>
         public OrdersController(IOrderService orderService)
         {
             _orderService = orderService;
@@ -32,6 +39,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
 
         private bool IsAdmin() => User.IsInRole("Admin");
 
+        /// <summary>
+        /// Creates a new order using the authenticated user's cart.
+        /// </summary>
         [HttpPost]
         [ProducesResponseType(typeof(OrderDto), StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequestDto request)
@@ -41,6 +51,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, order);
         }
 
+        /// <summary>
+        /// Returns all orders created by the authenticated user.
+        /// </summary>
         [HttpGet("mine")]
         [ProducesResponseType(typeof(List<OrderDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetMyOrders()
@@ -50,6 +63,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(orders);
         }
 
+        /// <summary>
+        /// Returns an order by ID. Admins can access any order, while regular users can access their own orders.
+        /// </summary>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetOrderById(int id)
@@ -59,6 +75,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(order);
         }
 
+        /// <summary>
+        /// Confirms an order. Access depends on the user's authorization and order ownership.
+        /// </summary>
         [HttpPut("{id}/confirm")]
         [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> ConfirmOrder(int id)
@@ -68,6 +87,9 @@ namespace Stylo.Backend.Stylo.API.Controllers
             return Ok(order);
         }
 
+        /// <summary>
+        /// Cancels an order. Access depends on the user's authorization and order ownership.
+        /// </summary>
         [HttpPut("{id}/cancel")]
         [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> CancelOrder(int id)
