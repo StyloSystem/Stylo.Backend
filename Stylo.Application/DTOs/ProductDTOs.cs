@@ -54,6 +54,10 @@ namespace Stylo.Backend.Stylo.Application.DTOs
         [JsonPropertyName("stock")]
         public int Stock { get; set; }
 
+
+        [JsonPropertyName("hasPurchased")]
+        public bool HasPurchased { get; set; }
+
         [JsonPropertyName("category")]
         public ProductCategoryDto Category { get; set; } = null!;
 

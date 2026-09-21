@@ -69,6 +69,7 @@ namespace Stylo.Backend.Stylo.API.Extensions
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<IOrderService, OrderService>();
 
+            services.AddHttpContextAccessor();
 
             var secretKey = configuration["Jwt:SecretKey"] ?? "SuperSecretKeyForStyloBackendECommerceApp2026!";
             var issuer = configuration["Jwt:Issuer"] ?? "StyloAPI";
