@@ -80,5 +80,20 @@ namespace Stylo.Backend.Stylo.Application.Services
             feedback.IsFeatured = true;
             await _repository.SaveChangesAsync();
         }
+
+        public async Task UnfeatureAsync(int id)
+        {
+            if (id <= 0)
+                throw new BadRequestException("Invalid feedback id");
+
+            var feedback = await _repository.GetByIdAsync(id);
+
+            if (feedback == null)
+                throw new NotFoundException("Feedback not found");
+
+            feedback.IsFeatured = false;
+
+            await _repository.SaveChangesAsync();
+        }
     }
 }
