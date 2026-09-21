@@ -99,6 +99,17 @@ namespace Stylo.Backend.Stylo.Infrastructure.Repositories
                 .AnyAsync(pf => pf.ProductId == productId);
         }
 
+        public async Task<bool> HasPurchasedProductIdsAsync(
+            int? userId,
+            int productId)
+        {
+            return await _context.OrderItems
+                .AnyAsync(oi =>
+                    oi.ProductId == productId &&
+                    oi.Order.UserId == (userId ?? 0) &&
+                    oi.Order.Status ==
+                        Domain.Enums.OrderStatus.Confirmed);
+        }
         public async Task AddAsync(Product product)
         {
             await _context.Products.AddAsync(product);

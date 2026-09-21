@@ -69,26 +69,8 @@ namespace Stylo.Backend.Stylo.Application.Services
 
         public async Task<OrderDto> CancelOrderAsync(int userId, bool isAdmin, int orderId)
         {
-            var order = await _orderRepository.GetOrderByIdAsync(orderId);
-            if (order == null || (!isAdmin && order.UserId != userId))
-            {
-                throw new NotFoundException($"Order with ID {orderId} not found.");
-            }
-
-            if (order.Status != OrderStatus.Pending)
-            {
-                throw new BadRequestException("Order is no longer Pending and cannot be modified.");
-            }
-
-            order.Status = OrderStatus.Cancelled;
-            foreach (var item in order.OrderItems)
-            {
-                item.Status = OrderItemStatus.Cancelled;
-            }
-
-            RecalculateOrderTotalsAndStatus(order);
-            await _orderRepository.UpdateOrderAsync(order);
-            return MapToDto(order);
+            var cancelledOrder = await _orderRepository.CancelOrderTransactionAsync(userId, isAdmin, orderId);
+            return MapToDto(cancelledOrder);
         }
 
         public async Task<List<OrderDto>> GetAllOrdersForAdminAsync()

@@ -177,6 +177,94 @@ namespace Stylo.Backend.Stylo.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task<Order> CancelOrderTransactionAsync(int userId, bool isAdmin, int orderId)
+        {
+            const int maxRetries = 3;
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            {
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    var order = await _context.Orders
+                        .Include(o => o.OrderItems)
+                        .FirstOrDefaultAsync(o => o.Id == orderId);
+
+                    if (order == null || (!isAdmin && order.UserId != userId))
+                    {
+                        throw new NotFoundException($"Order with ID {orderId} not found.");
+                    }
+
+                    if (order.Status != OrderStatus.Pending)
+                    {
+                        throw new BadRequestException("Order is no longer Pending and cannot be modified.");
+                    }
+
+                    order.Status = OrderStatus.Cancelled;
+
+                    var productIds = order.OrderItems.Select(oi => oi.ProductId).Distinct().ToList();
+                    var products = await _context.Products
+                        .Include(p => p.ProductSizes)
+                        .Where(p => productIds.Contains(p.Id))
+                        .ToListAsync();
+
+                    foreach (var item in order.OrderItems)
+                    {
+                        if (item.Status != OrderItemStatus.Cancelled)
+                        {
+                            item.Status = OrderItemStatus.Cancelled;
+
+                            if (Enum.TryParse<Size>(item.Size, true, out var sizeEnum))
+                            {
+                                var product = products.FirstOrDefault(p => p.Id == item.ProductId);
+                                if (product != null)
+                                {
+                                    var productSize = product.ProductSizes.FirstOrDefault(ps => ps.Size == sizeEnum);
+                                    if (productSize != null)
+                                    {
+                                        productSize.Stock += item.Quantity;
+                                    }
+                                    else
+                                    {
+                                        product.ProductSizes.Add(new ProductSize
+                                        {
+                                            ProductId = item.ProductId,
+                                            Size = sizeEnum,
+                                            Stock = item.Quantity
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    var activeItems = order.OrderItems.Where(oi => oi.Status != OrderItemStatus.Cancelled).ToList();
+                    order.TotalPrice = activeItems.Sum(oi => oi.UnitPriceAtPurchase * oi.Quantity);
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return await GetOrderByIdAsync(order.Id) ?? order;
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    await transaction.RollbackAsync();
+                    _context.ChangeTracker.Clear();
+                    if (attempt == maxRetries)
+                    {
+                        throw new ConflictException("The product stock could not be updated concurrently. Please try again.", "CONCURRENCY_CONFLICT");
+                    }
+                    await Task.Delay(50 * attempt);
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+
+            throw new ConflictException("Order cancellation failed due to concurrent stock updates. Please try again.", "CONCURRENCY_CONFLICT");
+        }
+
         public async Task<OrderItem?> GetOrderItemByIdAsync(int orderItemId)
         {
             return await _context.OrderItems
